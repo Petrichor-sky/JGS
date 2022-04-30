@@ -1,6 +1,7 @@
 package com.itheima.controller;
 
 import com.itheima.mongo.Movement;
+import com.itheima.service.CommentService;
 import com.itheima.service.MovementService;
 import com.itheima.vo.MovementsVo;
 import com.itheima.vo.PageResult;
@@ -15,6 +16,8 @@ public class MovementController {
 
     @Autowired
     private MovementService movementService;
+    @Autowired
+    private CommentService commentService;
 
     /**
      * 发布动态
@@ -78,5 +81,25 @@ public class MovementController {
     public ResponseEntity<MovementsVo> findMovementById(@PathVariable("id")String movementId){
         MovementsVo movementsVo = movementService.findMovementById(movementId);
         return ResponseEntity.ok(movementsVo);
+    }
+
+    /**
+     * 动态点赞
+     * @param movementId
+     * @return
+     */
+    @GetMapping("/{id}/like")
+    public ResponseEntity<Integer> like(@PathVariable("id")String movementId){
+        Integer likeCount = commentService.likeComment(movementId);
+        return ResponseEntity.ok(likeCount);
+    }
+
+    /**
+     * 取消掉赞
+     */
+    @GetMapping("/{id}/dislike")
+    public ResponseEntity<Integer> dislike(@PathVariable("id")String movementId){
+        Integer likeCount = commentService.dislikeComment(movementId);
+        return ResponseEntity.ok(likeCount);
     }
 }
