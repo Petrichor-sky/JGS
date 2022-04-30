@@ -67,7 +67,8 @@ public class CommentApiImpl implements CommentApi{
 
     @Override
     public Integer countByPublishId(String movementId) {
-        Query query = Query.query(Criteria.where("publishId").is(new ObjectId(movementId)));
+        Query query = Query.query(Criteria.where("publishId").is(new ObjectId(movementId))
+                .and("commentType").is(CommentType.COMMENT.getType()));
         return Math.toIntExact(mongoTemplate.count(query, Comment.class));
     }
 
