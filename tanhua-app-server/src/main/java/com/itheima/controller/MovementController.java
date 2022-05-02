@@ -5,10 +5,13 @@ import com.itheima.service.CommentService;
 import com.itheima.service.MovementService;
 import com.itheima.vo.MovementsVo;
 import com.itheima.vo.PageResult;
+import com.itheima.vo.VisitorVo;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 import org.springframework.web.multipart.MultipartFile;
+
+import java.util.List;
 
 @RestController
 @RequestMapping("movements")
@@ -101,5 +104,32 @@ public class MovementController {
     public ResponseEntity<Integer> dislike(@PathVariable("id")String movementId){
         Integer likeCount = commentService.dislikeComment(movementId);
         return ResponseEntity.ok(likeCount);
+    }
+
+    /**
+     * 动态喜欢
+     */
+    @GetMapping("/{id}/love")
+    public ResponseEntity<Integer> love(@PathVariable("id")String movementId){
+        Integer loveCount = commentService.loveComment(movementId);
+        return ResponseEntity.ok(loveCount);
+    }
+
+    /**
+     * 动态取消喜欢
+     */
+    @GetMapping("/{id}/unlove")
+    public ResponseEntity<Integer> unlove(@PathVariable("id")String movementId){
+        Integer loveCount = commentService.unloveComment(movementId);
+        return ResponseEntity.ok(loveCount);
+    }
+
+    /**
+     * 谁看过我的
+     */
+    @GetMapping("visitors")
+    public ResponseEntity<List<VisitorVo>> visitors(){
+        List<VisitorVo> visitors = commentService.visitors();
+        return ResponseEntity.ok(visitors);
     }
 }

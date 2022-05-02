@@ -13,7 +13,7 @@ public class TodayBest {
     private String gender; //性别 man woman
     private Integer age;
     private String[] tags;
-    private Long fateValue; //缘分值
+    private Integer fateValue; //缘分值
 
     public static TodayBest init(UserInfo userInfo, RecommendUser recommendUser) {
         TodayBest vo = new TodayBest();
@@ -21,7 +21,7 @@ public class TodayBest {
         if(userInfo.getTags() != null) {
             vo.setTags(userInfo.getTags().split(","));
         }
-        vo.setFateValue(recommendUser.getScore().longValue());
+        vo.setFateValue(recommendUser.getScore().intValue());
         return vo;
     }
 }

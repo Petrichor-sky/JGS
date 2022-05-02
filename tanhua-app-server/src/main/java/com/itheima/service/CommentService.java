@@ -4,15 +4,18 @@ import cn.hutool.core.collection.CollUtil;
 import com.itheima.api.CommentApi;
 import com.itheima.api.MovementApi;
 import com.itheima.api.UserInfoApi;
+import com.itheima.api.VisitorsApi;
 import com.itheima.exception.BusinessException;
 import com.itheima.mongo.Comment;
 import com.itheima.enums.CommentType;
 import com.itheima.mongo.Constants;
+import com.itheima.mongo.Visitors;
 import com.itheima.pojo.ErrorResult;
 import com.itheima.pojo.UserInfo;
 import com.itheima.utils.ThreadLocalUtils;
 import com.itheima.vo.CommentVo;
 import com.itheima.vo.PageResult;
+import com.itheima.vo.VisitorVo;
 import org.apache.dubbo.config.annotation.DubboReference;
 import org.bson.types.ObjectId;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -33,6 +36,8 @@ public class CommentService {
     private MovementApi movementApi;
     @Autowired
     private RedisTemplate<String,String> redisTemplate;
+    @DubboReference
+    private VisitorsApi visitorsApi;
     /**
      * 评论列表
      * @param movementId
@@ -138,5 +143,76 @@ public class CommentService {
         redisTemplate.opsForHash().delete(key,hashKey);
         //返回点赞的数量
         return count;
+    }
+
+    /**
+     * 动态喜欢
+     * @param movementId
+     * @return
+     */
+    public Integer loveComment(String movementId) {
+        //判断是否已喜欢
+        boolean hasComment = commentApi.hasComment(movementId, ThreadLocalUtils.get(), CommentType.LOVE);
+        if (hasComment){
+            throw new BusinessException(ErrorResult.loveError());
+        }
+        //封装对象
+        Comment comment = new Comment();
+        comment.setPublishId(new ObjectId(movementId));
+        comment.setCommentType(CommentType.LOVE.getType());
+        comment.setCreated(System.currentTimeMillis());
+        comment.setUserId(ThreadLocalUtils.get());
+        //执行保存操作
+        Integer count = commentApi.save(comment);
+        //设置key
+        String key = Constants.MOVEMENTS_INTERACT_KEY + movementId;
+        String typeKey = Constants.MOVEMENT_LOVE_HASHKEY + ThreadLocalUtils.get();
+        ///执行添加操作
+        redisTemplate.opsForHash().put(key,typeKey,"1");
+        return count;
+    }
+
+    /**
+     * 动态取消喜欢
+     * @param movementId
+     * @return
+     */
+    public Integer unloveComment(String movementId) {
+        //判断是否喜欢
+        boolean hasComment = commentApi.hasComment(movementId, ThreadLocalUtils.get(), CommentType.LOVE);
+        if (!hasComment){
+            throw new BusinessException(ErrorResult.disloveError());
+        }
+        //创建对象
+        Comment comment = new Comment();
+        comment.setPublishId(new ObjectId(movementId));
+        comment.setUserId(ThreadLocalUtils.get());
+        comment.setCommentType(CommentType.LOVE.getType());
+        //执行删除操作
+        Integer count = commentApi.delete(comment);
+        //设置key
+        String key = Constants.MOVEMENTS_INTERACT_KEY + movementId;
+        String typeKey = Constants.MOVEMENT_LOVE_HASHKEY + ThreadLocalUtils.get();
+        //删除redis中的数据
+        redisTemplate.opsForHash().delete(key,typeKey);
+        //返回喜欢书
+        return count;
+    }
+
+    /**
+     * 谁看过我
+     * @return
+     */
+    public List<VisitorVo> visitors() {
+        //获取当前用户的id
+        Long uid = ThreadLocalUtils.get();
+        List<Visitors> visitorsList = visitorsApi.findVisitorsByUserId(uid);
+        //遍历
+        List<VisitorVo> visitorVoList = new ArrayList<>();
+        for (Visitors visitor : visitorsList) {
+            UserInfo userInfo = userInfoApi.findById(visitor.getUserId());
+            visitorVoList.add(VisitorVo.init(userInfo, visitor));
+        }
+        return visitorVoList;
     }
 }

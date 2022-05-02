@@ -183,6 +183,7 @@ public class MovementService {
             MovementsVo movementsVo = MovementsVo.init(userInfo, movement);
             movementsVo.setHasLiked(commentApi.hasComment(movement.getId().toHexString(),ThreadLocalUtils.get(), CommentType.LIKE) ? 1 : 0);
             movementsVo.setCommentCount(commentApi.countByPublishId(movement.getId().toHexString()));
+            movementsVo.setHasLoved(commentApi.hasComment(movement.getId().toHexString(),ThreadLocalUtils.get(), CommentType.LOVE) ? 1 : 0);
             movementsVoList.add(movementsVo);
         }
         //创建返回数据的对象
