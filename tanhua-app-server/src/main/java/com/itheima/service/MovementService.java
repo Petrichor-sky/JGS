@@ -1,8 +1,10 @@
 package com.itheima.service;
 
 import cn.hutool.core.collection.CollUtil;
+import com.itheima.api.CommentApi;
 import com.itheima.api.MovementApi;
 import com.itheima.api.UserInfoApi;
+import com.itheima.enums.CommentType;
 import com.itheima.exception.BusinessException;
 import com.itheima.mongo.Movement;
 import com.itheima.mongo.MovementTimeLine;
@@ -14,6 +16,7 @@ import com.itheima.utils.ThreadLocalUtils;
 import com.itheima.vo.MovementsVo;
 import com.itheima.vo.PageResult;
 import org.apache.dubbo.config.annotation.DubboReference;
+import org.bson.types.ObjectId;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.data.redis.core.RedisTemplate;
 import org.springframework.stereotype.Service;
@@ -42,6 +45,8 @@ public class MovementService {
     private ReMovementService reMovementService;
     @Autowired
     private RedisTemplate<String,String> redisTemplate;
+    @DubboReference
+    private CommentApi commentApi;
     /**
      * 发布动态
      * @param movement
@@ -126,7 +131,10 @@ public class MovementService {
             Long userId = movement.getUserId();
             //查询当前用户对应的id
             UserInfo userInfo = userInfoApi.findById(userId);
-            movementsVoList.add(MovementsVo.init(userInfo,movement));
+            MovementsVo vo = MovementsVo.init(userInfo, movement);
+            vo.setHasLiked(commentApi.hasComment(movement.getId().toHexString(),ThreadLocalUtils.get(), CommentType.LIKE) ? 1 : 0);
+            vo.setCommentCount(commentApi.countByPublishId(movement.getId().toHexString()));
+            movementsVoList.add(vo);
         }
         //创建返回数据对象
         PageResult result = new PageResult();
@@ -173,9 +181,8 @@ public class MovementService {
             Long userId = movement.getUserId();
             UserInfo userInfo = userInfoApi.findById(userId);
             MovementsVo movementsVo = MovementsVo.init(userInfo, movement);
-            movementsVo.setLoveCount(0);
-            movementsVo.setLikeCount(0);
-            movementsVo.setCommentCount(0);
+            movementsVo.setHasLiked(commentApi.hasComment(movement.getId().toHexString(),ThreadLocalUtils.get(), CommentType.LIKE) ? 1 : 0);
+            movementsVo.setCommentCount(commentApi.countByPublishId(movement.getId().toHexString()));
             movementsVoList.add(movementsVo);
         }
         //创建返回数据的对象

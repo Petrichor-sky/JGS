@@ -43,8 +43,12 @@ public class CommentService {
     public PageResult getCommemts(String movementId, Integer page, Integer pageSize) {
         //动态id
         List<Comment> commentList = commentApi.findComments(movementId,page,pageSize);
+        PageResult result = new PageResult();
+        result.setPagesize(page);
+        result.setPagesize(pageSize);
         if (CollUtil.isEmpty(commentList)){
-            return new PageResult();
+            result.setItems(null);
+            return result;
         }
         List<CommentVo> commentVoList = new ArrayList<>();
         for (Comment comment : commentList) {
@@ -54,9 +58,6 @@ public class CommentService {
             commentVoList.add(CommentVo.init(userInfo, comment));
         }
         Integer count = commentApi.countByPublishId(movementId);
-        PageResult result = new PageResult();
-        result.setPagesize(page);
-        result.setPagesize(pageSize);
         result.setItems(commentVoList);
         result.setCounts(count);
         return result;

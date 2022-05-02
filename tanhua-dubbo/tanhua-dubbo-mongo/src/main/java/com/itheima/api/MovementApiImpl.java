@@ -80,7 +80,7 @@ public class MovementApiImpl implements MovementApi {
 
     @Override
     public Movement findByMoveId(String movementId) {
-        Query query = Query.query(Criteria.where("id").is(new ObjectId(movementId)));
+        Query query = Query.query(Criteria.where("id").is(movementId));
         return mongoTemplate.findOne(query,Movement.class);
     }
 
