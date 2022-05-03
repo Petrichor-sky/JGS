@@ -14,4 +14,8 @@ public interface UserApi {
     int save(User user);
 
     User findById(Long id);
+
+    void update(User user);
+
+    User findByHuanXinId(String huanxinId);
 }

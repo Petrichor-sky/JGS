@@ -16,4 +16,10 @@ public interface CommentApi {
     boolean hasComment(String movementId, Long userId, CommentType commentType);
 
     Integer delete(Comment comment);
+
+    Comment findCommentById(String commentId);
+
+    Integer saveLikeComment(Comment comment,String commentId);
+
+    Integer deleteLikeComment(Comment comment);
 }

@@ -65,6 +65,11 @@ public class CommentApiImpl implements CommentApi{
         return modify.statisCount(comment.getCommentType());
     }
 
+    /**
+     * 统计数量
+     * @param movementId
+     * @return
+     */
     @Override
     public Integer countByPublishId(String movementId) {
         Query query = Query.query(Criteria.where("publishId").is(new ObjectId(movementId))
@@ -72,6 +77,13 @@ public class CommentApiImpl implements CommentApi{
         return Math.toIntExact(mongoTemplate.count(query, Comment.class));
     }
 
+    /**
+     * 判断是否存在
+     * @param movementId
+     * @param userId
+     * @param commentType
+     * @return
+     */
     @Override
     public boolean hasComment(String movementId, Long userId, CommentType commentType) {
         Query query = Query.query(Criteria.where("userId").is(userId)
@@ -80,6 +92,11 @@ public class CommentApiImpl implements CommentApi{
         return mongoTemplate.exists(query,Comment.class);
     }
 
+    /**
+     * 取消动态点赞
+     * @param comment
+     * @return
+     */
     @Override
     public Integer delete(Comment comment) {
         //删除Comment表中的数据
@@ -104,6 +121,58 @@ public class CommentApiImpl implements CommentApi{
         options.returnNew(true);
         Movement modify = mongoTemplate.findAndModify(movementQuery, update, options, Movement.class);
         //获取最新的评论数据并返回
+        return modify.statisCount(comment.getCommentType());
+    }
+
+    @Override
+    public Comment findCommentById(String commentId) {
+        return  mongoTemplate.findById(commentId,Comment.class);
+    }
+
+    /**
+     * 评论点赞
+     * @param comment
+     * @param commentId
+     * @return
+     */
+    @Override
+    public Integer saveLikeComment(Comment comment,String commentId) {
+        //执行保存操作
+        mongoTemplate.save(comment);
+        Query query = Query.query(Criteria.where("id").is(commentId));
+        Update update = new Update();
+        if (comment.getCommentType() == CommentType.LIKE.getType()){
+            update.inc("likeCount",1);
+        }
+        //构建更新参数
+        FindAndModifyOptions options = new FindAndModifyOptions();
+        options.returnNew(true);
+        Comment modify = mongoTemplate.findAndModify(query, update, options, Comment.class);
+        return modify.statisCount(comment.getCommentType());
+    }
+
+    /**
+     * 取消评论点赞
+     * @param comment
+     * @return
+     */
+    @Override
+    public Integer deleteLikeComment(Comment comment) {
+        //设置条件
+        Query query = Query.query(Criteria.where("publishId").is(comment.getPublishId())
+                .and("commentType").is(comment.getCommentType())
+                .and("userId").is(comment.getUserId()));
+        mongoTemplate.remove(query,Comment.class);
+        Query commentQuery = Query.query(Criteria.where("id").is(comment.getPublishId()));
+        Update update = new Update();
+        if (comment.getCommentType() == CommentType.LIKE.getType()){
+            update.inc("likeCount",-1);
+        }
+        //设置更新条件
+        FindAndModifyOptions options = new FindAndModifyOptions();
+        options.returnNew(true);
+        Comment modify = mongoTemplate.findAndModify(commentQuery, update, options, Comment.class);
+        //返回输出结果
         return modify.statisCount(comment.getCommentType());
     }
 }

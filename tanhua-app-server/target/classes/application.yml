@@ -38,6 +38,9 @@ tanhua:
     appId: 26037091
     apiKey: cFk6x2fCVn57ySrcwCRsBo78
     secretKey: Sz0uza2eGhj2ZU971mBfHQHo1LIthMsA
-
+  huanxin:
+    appkey: 1143220502140452#tanhua1
+    clientId: YXA6IDiLzNY6R8aVPA4PYTtOmw
+    clientSecret: YXA6Iy1XKSLUsYA0eeKM-XaP6g4bsEs
 recommend:
   uid: 1

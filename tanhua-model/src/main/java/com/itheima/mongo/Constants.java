@@ -18,6 +18,12 @@ public class Constants {
     //动态点赞用户HashKey
     public static final String MOVEMENT_LIKE_HASHKEY = "MOVEMENT_LIKE_";
 
+    //圈子互动KEY
+    public static final String COMMENT_INTERACT_KEY = "COMMENT_INTERACT_";
+
+    //评论点赞用户HashKey
+    public static final String COMMENT_LIKE_HASHKEY = "COMMENT_LIKE_";
+
     //动态喜欢用户HashKey
     public static final String MOVEMENT_LOVE_HASHKEY = "MOVEMENT_LOVE_";
 

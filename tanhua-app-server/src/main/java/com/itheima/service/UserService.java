@@ -2,10 +2,12 @@ package com.itheima.service;
 
 import com.itheima.api.UserApi;
 import com.itheima.exception.BusinessException;
+import com.itheima.mongo.Constants;
 import com.itheima.pojo.ErrorResult;
 import com.itheima.pojo.User;
 import com.itheima.pojo.UserInfo;
 import com.itheima.template.AipFaceTemplate;
+import com.itheima.template.HuanXinTemplate;
 import com.itheima.template.OssTemplate;
 import com.itheima.utils.JwtUtils;
 import com.itheima.utils.ThreadLocalUtils;
@@ -42,6 +44,9 @@ public class UserService {
 
     @Autowired
     private AipFaceTemplate aipFaceTemplate;
+
+    @Autowired
+    private HuanXinTemplate huanXinTemplate;
 
     /**
      * 发送验证码功能
@@ -85,6 +90,15 @@ public class UserService {
             int id = userApi.save(user);
             user.setId(id);
             isNew = true;
+
+            //注册环信用户
+            String hxUSer = "hx" + user.getId();
+            Boolean create = huanXinTemplate.createUser(hxUSer, Constants.INIT_PASSWORD);
+            if (create){
+                user.setHxUser(hxUSer);
+                user.setHxPassword(Constants.INIT_PASSWORD);
+                userApi.update(user);
+            }
         }
         //6.获取该用户的token
         Map<String,Object> params = new HashMap<>();

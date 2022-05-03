@@ -8,6 +8,7 @@ import com.baomidou.mybatisplus.core.conditions.query.LambdaQueryWrapper;
 import com.baomidou.mybatisplus.core.conditions.query.QueryWrapper;
 import com.itheima.dto.RecommendUserDto;
 import com.itheima.mapper.UserInfoMapper;
+import com.itheima.pojo.User;
 import com.itheima.pojo.UserInfo;
 import org.apache.dubbo.config.annotation.DubboService;
 import org.springframework.beans.factory.annotation.Autowired;

@@ -39,4 +39,22 @@ public class CommentController {
         return ResponseEntity.ok(null);
     }
 
+    /**
+     * 评论点赞
+     */
+    @GetMapping("/{id}/like")
+    public ResponseEntity<Integer> like(@PathVariable("id") String commentId){
+        Integer count = commentService.likeComment(commentId);
+        return ResponseEntity.ok(count);
+    }
+
+    /**
+     * 取消评论点赞
+     */
+    @GetMapping("/{id}/dislike")
+    public ResponseEntity<Integer> dislike(@PathVariable("id") String commentId){
+        Integer count = commentService.dislikeComment(commentId);
+        return ResponseEntity.ok(count);
+    }
+
 }

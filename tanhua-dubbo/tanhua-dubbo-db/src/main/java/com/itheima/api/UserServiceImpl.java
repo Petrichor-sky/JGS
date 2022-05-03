@@ -31,4 +31,16 @@ public class UserServiceImpl implements UserApi {
     public User findById(Long id) {
         return userMapper.selectById(id);
     }
+
+    @Override
+    public void update(User user) {
+        userMapper.updateById(user);
+    }
+
+    @Override
+    public User findByHuanXinId(String huanxinId) {
+        LambdaQueryWrapper<User> queryWrapper = new LambdaQueryWrapper<>();
+        queryWrapper.eq(User::getHxUser,huanxinId);
+        return userMapper.selectOne(queryWrapper);
+    }
 }

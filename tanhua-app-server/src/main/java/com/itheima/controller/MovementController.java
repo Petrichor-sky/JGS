@@ -93,7 +93,7 @@ public class MovementController {
      */
     @GetMapping("/{id}/like")
     public ResponseEntity<Integer> like(@PathVariable("id")String movementId){
-        Integer likeCount = commentService.likeComment(movementId);
+        Integer likeCount = commentService.likeMovement(movementId);
         return ResponseEntity.ok(likeCount);
     }
 
@@ -102,7 +102,7 @@ public class MovementController {
      */
     @GetMapping("/{id}/dislike")
     public ResponseEntity<Integer> dislike(@PathVariable("id")String movementId){
-        Integer likeCount = commentService.dislikeComment(movementId);
+        Integer likeCount = commentService.dislikeMovement(movementId);
         return ResponseEntity.ok(likeCount);
     }
 
@@ -132,4 +132,5 @@ public class MovementController {
         List<VisitorVo> visitors = commentService.visitors();
         return ResponseEntity.ok(visitors);
     }
+
 }

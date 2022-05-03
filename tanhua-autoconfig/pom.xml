@@ -65,6 +65,12 @@
             <artifactId>aliyun-java-sdk-green</artifactId>
             <version>3.6.1</version>
         </dependency>
+        <!--环信-->
+        <dependency>
+            <groupId>com.easemob.im</groupId>
+            <artifactId>im-sdk-core</artifactId>
+            <version>0.5.2</version>
+        </dependency>
     </dependencies>
 
 </project>

@@ -60,7 +60,9 @@ public class CommentService {
             Long userId = comment.getUserId();
             //通过userId来查询对应的信息
             UserInfo userInfo = userInfoApi.findById(userId);
-            commentVoList.add(CommentVo.init(userInfo, comment));
+            CommentVo vo = CommentVo.init(userInfo, comment);
+            vo.setHasLiked(commentApi.hasComment(comment.getId().toHexString(),ThreadLocalUtils.get(),CommentType.LIKE) ? 1 : 0);
+            commentVoList.add(vo);
         }
         Integer count = commentApi.countByPublishId(movementId);
         result.setItems(commentVoList);
@@ -97,7 +99,7 @@ public class CommentService {
      * @param movementId
      * @return
      */
-    public Integer likeComment(String movementId) {
+    public Integer likeMovement(String movementId) {
         //查询是否已经点赞
         boolean hasComment = commentApi.hasComment(movementId,ThreadLocalUtils.get(),CommentType.LIKE);
         //如果已经点赞的话，则抛出异常
@@ -125,7 +127,7 @@ public class CommentService {
      * @param movementId
      * @return
      */
-    public Integer dislikeComment(String movementId) {
+    public Integer dislikeMovement(String movementId) {
         //判断是否已经点赞
         boolean hasComment = commentApi.hasComment(movementId, ThreadLocalUtils.get(), CommentType.LIKE);
         if (!hasComment){
@@ -214,5 +216,55 @@ public class CommentService {
             visitorVoList.add(VisitorVo.init(userInfo, visitor));
         }
         return visitorVoList;
+    }
+
+    /**
+     * 评论点赞
+     * @param commentId
+     * @return
+     */
+    public Integer likeComment(String commentId) {
+        //获取当前评论信息
+        Comment com = commentApi.findCommentById(commentId);
+        //判断当前评论是否已点赞
+        boolean hasComment = commentApi.hasComment(commentId, ThreadLocalUtils.get(), CommentType.LIKE);
+        if (hasComment){
+            throw new BusinessException(ErrorResult.likeError());
+        }
+        //封装对象
+        Comment comment = new Comment();
+        comment.setPublishId(new ObjectId(commentId));
+        comment.setUserId(ThreadLocalUtils.get());
+        comment.setCommentType(CommentType.LIKE.getType());
+        comment.setCreated(System.currentTimeMillis());
+        comment.setPublishUserId(com.getUserId());
+        //执行保存操作
+        Integer count = commentApi.saveLikeComment(comment,commentId);
+        //设置key存储至redis中
+        String key = Constants.COMMENT_INTERACT_KEY + commentId;
+        String typeKey = Constants.COMMENT_LIKE_HASHKEY + ThreadLocalUtils.get();
+        //将数据存入到redis中
+        redisTemplate.opsForHash().put(key,typeKey,"1");
+        return count;
+    }
+
+    public Integer dislikeComment(String commentId) {
+        //判断当前评论是否已经点赞
+        boolean hasComment = commentApi.hasComment(commentId, ThreadLocalUtils.get(), CommentType.LIKE);
+        if (!hasComment){
+            throw new BusinessException(ErrorResult.disLikeError());
+        }
+        //封装对象
+        Comment comment = new Comment();
+        comment.setPublishId(new ObjectId(commentId));
+        comment.setCommentType(CommentType.LIKE.getType());
+        comment.setUserId(ThreadLocalUtils.get());
+        //调用删除方法，并返回修改后的点赞数值
+        Integer count = commentApi.deleteLikeComment(comment);
+        //删除redis中相关的数据
+        String key = Constants.COMMENT_INTERACT_KEY + commentId;
+        String typeKey = Constants.COMMENT_LIKE_HASHKEY + ThreadLocalUtils.get();
+        redisTemplate.opsForHash().delete(key,typeKey);
+        return count;
     }
 }
