@@ -15,4 +15,6 @@ public interface UserInfoApi {
     List<UserInfo> findUserInfoByIds(List<Long> list);
 
     UserInfo findInfoById(Long userId, RecommendUserDto recommendUserDto);
+
+    Map<Long, UserInfo> findByIds(List<Object> friendIds, UserInfo userInfo);
 }

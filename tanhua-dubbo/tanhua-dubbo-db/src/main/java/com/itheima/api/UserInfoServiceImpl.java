@@ -8,10 +8,13 @@ import com.baomidou.mybatisplus.core.conditions.query.LambdaQueryWrapper;
 import com.baomidou.mybatisplus.core.conditions.query.QueryWrapper;
 import com.itheima.dto.RecommendUserDto;
 import com.itheima.mapper.UserInfoMapper;
+import com.itheima.mongo.Friend;
 import com.itheima.pojo.User;
 import com.itheima.pojo.UserInfo;
 import org.apache.dubbo.config.annotation.DubboService;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.data.mongodb.core.query.Criteria;
+import org.springframework.data.mongodb.core.query.Query;
 
 import java.util.List;
 import java.util.Map;
@@ -50,5 +53,31 @@ public class UserInfoServiceImpl implements UserInfoApi{
         queryWrapper.eq(StrUtil.isNotBlank(recommendUserDto.getGender()),
                 UserInfo::getGender,recommendUserDto.getGender());
         return userInfoMapper.selectOne(queryWrapper);
+    }
+
+    /**
+     * 根据ids和info来进行条件查询
+     * @param friendIds
+     * @param userInfo
+     * @return
+     */
+    @Override
+    public Map<Long, UserInfo> findByIds(List<Object> friendIds, UserInfo userInfo) {
+        QueryWrapper<UserInfo> queryWrapper = new QueryWrapper<>();
+        queryWrapper.in("id",friendIds);
+        //设置条件
+        if (userInfo != null){
+            if (userInfo.getAge() != null){
+                queryWrapper.lt("age",userInfo.getAge());
+            }
+            if (!StringUtils.isEmpty(userInfo.getGender())){
+                queryWrapper.eq("gender",userInfo.getGender());
+            }
+            if (!StringUtils.isEmpty(userInfo.getNickname())){
+                queryWrapper.like("nickname",userInfo.getNickname());
+            }
+        }
+        List<UserInfo> list = userInfoMapper.selectList(queryWrapper);
+        return CollUtil.fieldValueMap(list,"id");
     }
 }
