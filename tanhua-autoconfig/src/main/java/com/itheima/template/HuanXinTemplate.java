@@ -75,7 +75,7 @@ public class HuanXinTemplate {
                     set,message,null).block();
             return true;
         }catch (Exception e) {
-            log.error("删除联系人失败~");
+            log.error("发送消息失败~");
         }
         return false;
     }

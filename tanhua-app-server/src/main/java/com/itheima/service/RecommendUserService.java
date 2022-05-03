@@ -19,4 +19,8 @@ public class RecommendUserService {
     public RecommendUser findRecommendUserServiceByUserId(Long id) {
         return recommendUserApi.findRecommendUserServiceByUserId(id);
     }
+
+    public RecommendUser queryById(Long userId, Long toUserId) {
+        return recommendUserApi.queryById(userId,toUserId);
+    }
 }

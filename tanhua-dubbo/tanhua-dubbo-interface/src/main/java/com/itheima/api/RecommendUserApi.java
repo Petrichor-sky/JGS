@@ -9,4 +9,6 @@ public interface RecommendUserApi {
     RecommendUser findRecommendUserServiceByUserId(Long id);
 
     List<RecommendUser> findByUserId(Long id, Integer page, Integer pagesize);
+
+    RecommendUser queryById(Long userId, Long toUserId);
 }

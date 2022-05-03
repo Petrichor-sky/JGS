@@ -39,4 +39,25 @@ public class RecommendUserApiImpl implements RecommendUserApi {
         Query query = Query.query(Criteria.where("toUserId").is(toUserId)).with(pageable);
         return mongoTemplate.find(query,RecommendUser.class);
     }
+
+    /**
+     * 根据userId和toUserId来查询对应的信息
+     * @param userId
+     * @param toUserId
+     * @return
+     */
+    @Override
+    public RecommendUser queryById(Long userId, Long toUserId) {
+        Query query = Query.query(Criteria.where("userId").is(userId)
+                .and("toUserId").is(toUserId));
+        RecommendUser recommendUser = mongoTemplate.findOne(query, RecommendUser.class);
+        if(recommendUser == null) {
+            recommendUser = new RecommendUser();
+            recommendUser.setUserId(userId);
+            recommendUser.setToUserId(toUserId);
+            //构建缘分值
+            recommendUser.setScore(95d);
+        }
+        return recommendUser;
+    }
 }

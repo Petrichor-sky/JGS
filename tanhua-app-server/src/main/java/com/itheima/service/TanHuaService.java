@@ -1,23 +1,30 @@
 package com.itheima.service;
 
-import cn.hutool.core.collection.CollUtil;
+import com.alibaba.fastjson.JSON;
+import com.itheima.api.QuestionApi;
 import com.itheima.api.RecommendUserApi;
 import com.itheima.api.UserInfoApi;
 import com.itheima.dto.RecommendUserDto;
+import com.itheima.exception.BusinessException;
+import com.itheima.mongo.Constants;
 import com.itheima.mongo.RecommendUser;
+import com.itheima.pojo.ErrorResult;
+import com.itheima.pojo.Question;
 import com.itheima.pojo.UserInfo;
+import com.itheima.template.HuanXinTemplate;
 import com.itheima.utils.ThreadLocalUtils;
 import com.itheima.vo.PageResult;
 import com.itheima.vo.TodayBest;
 import org.apache.dubbo.config.annotation.DubboReference;
-import org.springframework.beans.BeanUtils;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Service;
 import org.springframework.util.ObjectUtils;
 
 import java.util.ArrayList;
+import java.util.HashMap;
 import java.util.List;
+import java.util.Map;
 
 @Service
 public class TanHuaService {
@@ -30,6 +37,10 @@ public class TanHuaService {
     private RecommendUserApi recommendUserApi;
     @Autowired
     private UserInfoService userInfoService;
+    @DubboReference
+    private QuestionApi questionApi;
+    @Autowired
+    private HuanXinTemplate template;
 
     @Value("${recommend.uid}")
     private Long userId;
@@ -88,5 +99,54 @@ public class TanHuaService {
         //设置推荐列表数据
         result.setItems(list);
         return result;
+    }
+
+    /**
+     * 佳人信息
+     * @param id
+     * @return
+     */
+    public TodayBest findPersonalInfoById(Long id) {
+
+        RecommendUser recommendUser = recommendUserService.queryById(id,ThreadLocalUtils.get());
+        //查询id用户的详细信息
+        UserInfo userInfo = userInfoApi.findById(id);
+        return TodayBest.init(userInfo,recommendUser);
+    }
+
+    /**
+     * 查询陌生人问题
+     * @param userId
+     * @return
+     */
+    public String getStrangerQuestions(Long userId) {
+        Question question = questionApi.findByUserId(userId);
+        return question == null ? "你喜欢java吗" : question.getTxt();
+    }
+
+    /**
+     * 回复陌生人消息
+     * @param params
+     */
+    public void strangerQuestions(Map<String, String> params) {
+        //获取参数信息
+        String userId = params.get("userId");
+        String reply = params.get("reply");
+        Long uid = ThreadLocalUtils.get();
+        UserInfo userInfo = userInfoApi.findById(uid);
+        //创建map集合
+        Map<String,Object> map = new HashMap<>();
+        map .put("userId",uid);
+        map.put("huanXinId", Constants.HX_USER_PREFIX + uid);
+        map .put("nickname",userInfo.getNickname());
+        map.put("strangerQuestion",getStrangerQuestions(Long.valueOf(userId)));
+        map.put("reply",reply);
+        //将map集合转换成json格式
+        String message = JSON.toJSONString(map);
+        //调用方法，发送信息给传进来的用户id
+        Boolean aBoolean = template.sendMsg(Constants.HX_USER_PREFIX + userId, message);
+        if (!aBoolean){
+            throw new BusinessException(ErrorResult.error());
+        }
     }
 }

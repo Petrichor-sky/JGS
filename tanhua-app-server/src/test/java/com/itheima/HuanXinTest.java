@@ -21,7 +21,7 @@ public class HuanXinTest {
 
     @Test
     public void testRegister() {
-        template.createUser("user04","123456");
+        template.createUser("user05","123456");
     }
 
 
