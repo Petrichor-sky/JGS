@@ -5,10 +5,7 @@ import cn.hutool.core.convert.Convert;
 import cn.hutool.core.util.RandomUtil;
 import com.alibaba.fastjson.JSON;
 import com.easemob.im.server.api.message.MessageApi;
-import com.itheima.api.QuestionApi;
-import com.itheima.api.RecommendUserApi;
-import com.itheima.api.UserInfoApi;
-import com.itheima.api.UserLikeApi;
+import com.itheima.api.*;
 import com.itheima.dto.RecommendUserDto;
 import com.itheima.exception.BusinessException;
 import com.itheima.mongo.Constants;
@@ -18,6 +15,7 @@ import com.itheima.pojo.Question;
 import com.itheima.pojo.UserInfo;
 import com.itheima.template.HuanXinTemplate;
 import com.itheima.utils.ThreadLocalUtils;
+import com.itheima.vo.NearUserVo;
 import com.itheima.vo.PageResult;
 import com.itheima.vo.TodayBest;
 import org.apache.dubbo.config.annotation.DubboReference;
@@ -53,6 +51,8 @@ public class TanHuaService {
     private RedisTemplate<String,String> redisTemplate;
     @Autowired
     private MessageService messageService;
+    @DubboReference
+    private UserLocationApi userLocationApi;
 
     @Value("${recommend.uid}")
     private Long userId;
@@ -251,6 +251,40 @@ public class TanHuaService {
         //操作redis
         redisTemplate.opsForSet().remove(Constants.USER_LIKE_KEY + userId,likeUserId.toString());
         redisTemplate.opsForSet().add(Constants.USER_NOT_LIKE_KEY + userId,likeUserId.toString());
+
+    }
+
+    /**
+     * 搜索附近
+     * @param gender
+     * @param distance
+     * @return
+     */
+    public List<NearUserVo> search(String gender, String distance) {
+        //根据id来查询附近的userId
+        List<Long> ids = userLocationApi.queryNearUser(ThreadLocalUtils.get(), Double.valueOf(distance));
+        //判断集合是否为空
+        if (CollUtil.isEmpty(ids)){
+            return new ArrayList<>();
+        }
+        //创建对象
+        UserInfo userInfo = new UserInfo();
+        userInfo.setGender(gender);
+        //3.调用userInfoApi来查询对应的用户信息
+        Map<Long, UserInfo> map = userInfoApi.findByIds(ids, userInfo);
+        //构造返回值对象
+        List<NearUserVo> vos = new ArrayList<>();
+        for (Long id : ids) {
+            //排除当前用户
+            if (id == ThreadLocalUtils.get()){
+                continue;
+            }
+            UserInfo info = map.get(id);
+            if (!ObjectUtils.isEmpty(info)){
+                vos.add(NearUserVo.init(info));
+            }
+        }
+        return vos;
 
     }
 }

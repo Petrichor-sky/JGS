@@ -3,6 +3,7 @@ package com.itheima.controller;
 import com.itheima.dto.RecommendUserDto;
 import com.itheima.pojo.Question;
 import com.itheima.service.TanHuaService;
+import com.itheima.vo.NearUserVo;
 import com.itheima.vo.PageResult;
 import com.itheima.vo.TodayBest;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -90,5 +91,15 @@ public class TanHuaController {
         tanHuaService.disLove(likeUserId);
         return ResponseEntity.ok(null);
 
+    }
+
+    /**
+     * 搜附近
+     */
+    @GetMapping("search")
+    public ResponseEntity<List<NearUserVo>> search(@RequestParam(value = "gender") String gender,
+                                             @RequestParam(defaultValue = "2000") String distance){
+        List<NearUserVo> list = tanHuaService.search(gender,distance);
+        return ResponseEntity.ok(list);
     }
 }

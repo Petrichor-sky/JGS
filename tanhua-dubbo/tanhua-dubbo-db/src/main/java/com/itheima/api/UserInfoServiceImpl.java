@@ -62,7 +62,7 @@ public class UserInfoServiceImpl implements UserInfoApi{
      * @return
      */
     @Override
-    public Map<Long, UserInfo> findByIds(List<Object> friendIds, UserInfo userInfo) {
+    public Map<Long, UserInfo> findByIds(List<Long> friendIds, UserInfo userInfo) {
         QueryWrapper<UserInfo> queryWrapper = new QueryWrapper<>();
         queryWrapper.in("id",friendIds);
         //设置条件

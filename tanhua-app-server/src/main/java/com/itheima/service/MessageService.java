@@ -86,7 +86,7 @@ public class MessageService {
             return result;
         }
         //拿到所有的用户有id
-        List<Object> friendIds = CollUtil.getFieldValues(friendList, "friendId");
+        List<Long> friendIds = CollUtil.getFieldValues(friendList, "friendId",Long.class);
         //创建对象
         UserInfo userInfo = new UserInfo();
         userInfo.setNickname(keyword);
