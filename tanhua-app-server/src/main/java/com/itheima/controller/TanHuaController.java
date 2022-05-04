@@ -9,6 +9,7 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 
+import java.util.List;
 import java.util.Map;
 
 @RestController
@@ -62,4 +63,32 @@ public class TanHuaController {
         return ResponseEntity.ok(null);
     }
 
+    /**
+     * 左滑右滑
+     */
+    @GetMapping("cards")
+    public ResponseEntity  queryCardList(){
+        List<TodayBest> list = tanHuaService.queryCardList();
+        return ResponseEntity.ok(list);
+    }
+
+    /**
+     * 喜欢
+     */
+    @GetMapping("/{id}/love")
+    public ResponseEntity love(@PathVariable("id") Long likeUserId){
+        tanHuaService.love(likeUserId);
+        return ResponseEntity.ok(null);
+
+    }
+
+    /**
+     * 不喜欢
+     */
+    @GetMapping("/{id}/unlove")
+    public ResponseEntity disLove(@PathVariable("id") Long likeUserId){
+        tanHuaService.disLove(likeUserId);
+        return ResponseEntity.ok(null);
+
+    }
 }

@@ -1,9 +1,14 @@
 package com.itheima.service;
 
+import cn.hutool.core.collection.CollUtil;
+import cn.hutool.core.convert.Convert;
+import cn.hutool.core.util.RandomUtil;
 import com.alibaba.fastjson.JSON;
+import com.easemob.im.server.api.message.MessageApi;
 import com.itheima.api.QuestionApi;
 import com.itheima.api.RecommendUserApi;
 import com.itheima.api.UserInfoApi;
+import com.itheima.api.UserLikeApi;
 import com.itheima.dto.RecommendUserDto;
 import com.itheima.exception.BusinessException;
 import com.itheima.mongo.Constants;
@@ -18,6 +23,7 @@ import com.itheima.vo.TodayBest;
 import org.apache.dubbo.config.annotation.DubboReference;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
+import org.springframework.data.redis.core.RedisTemplate;
 import org.springframework.stereotype.Service;
 import org.springframework.util.ObjectUtils;
 
@@ -41,9 +47,18 @@ public class TanHuaService {
     private QuestionApi questionApi;
     @Autowired
     private HuanXinTemplate template;
+    @DubboReference
+    private UserLikeApi userLikeApi;
+    @Autowired
+    private RedisTemplate<String,String> redisTemplate;
+    @Autowired
+    private MessageService messageService;
 
     @Value("${recommend.uid}")
     private Long userId;
+    @Value("${tanhua.default.recommend.users}")
+    private String recommendUser;
+
 
     /**
      * 查询今日最佳
@@ -148,5 +163,94 @@ public class TanHuaService {
         if (!aBoolean){
             throw new BusinessException(ErrorResult.error());
         }
+    }
+
+    /**
+     * 推荐用户列表
+     * @return
+     */
+    public List<TodayBest> queryCardList() {
+        //调用api，排除喜欢和不喜欢的用户
+        List<RecommendUser> cardsList = recommendUserApi.queryCardsList(ThreadLocalUtils.get(), 10);
+        //判断是否为空，如果为空的话，构建默认数据
+        if (CollUtil.isEmpty(cardsList)){
+            cardsList = new ArrayList<>();
+            String[] userIds = recommendUser.split(",");
+            for (String id : userIds) {
+                RecommendUser recommendUser = new RecommendUser();
+                recommendUser.setUserId(Convert.toLong(id));
+                recommendUser.setToUserId(ThreadLocalUtils.get());
+                recommendUser.setScore(RandomUtil.randomDouble(60,90));
+                cardsList.add(recommendUser);
+            }
+        }
+        //创建封装的好友
+        List<TodayBest> bestList = new ArrayList<>();
+        //遍历
+        for (RecommendUser recommendUser : cardsList) {
+            //获取userId
+            Long userId = recommendUser.getUserId();
+            //通过id查询用户的信息
+            UserInfo userInfo = userInfoApi.findById(userId);
+            //封装对象
+            TodayBest todayBest = TodayBest.init(userInfo, recommendUser);
+            bestList.add(todayBest);
+        }
+        //返回结果
+        return bestList;
+    }
+
+    /**
+     * 喜欢
+     * @param likeUserId
+     */
+    public void love(Long likeUserId) {
+        Long userId = ThreadLocalUtils.get();
+        //1.执行保存数据
+        boolean saveOrUpdate = userLikeApi.saveOrUpdate(userId, likeUserId, true);
+        if (!saveOrUpdate){
+            throw new BusinessException(ErrorResult.error());
+        }
+        //操作redis
+        redisTemplate.opsForSet().remove(Constants.USER_NOT_LIKE_KEY + userId,likeUserId.toString());
+        redisTemplate.opsForSet().add(Constants.USER_LIKE_KEY + userId,likeUserId.toString());
+        //判断是否双向喜欢
+        boolean like = isLike(likeUserId, userId);
+        if (like){
+            //如果是的话，则添加好友
+            messageService.contacts(likeUserId);
+        }
+
+    }
+
+    /**
+     * 是否双向喜欢
+     */
+    public Boolean isLike(Long userId,Long likeUserId){
+        String key = Constants.USER_LIKE_KEY + userId;
+        return redisTemplate.opsForSet().isMember(key,likeUserId.toString());
+    }
+
+    /**
+     * 不喜欢
+     * @param likeUserId
+     */
+    public void disLove(Long likeUserId) {
+        //执行保存的操作
+        Long userId = ThreadLocalUtils.get();
+        boolean saveOrUpdate = userLikeApi.saveOrUpdate(userId, likeUserId, false);
+        if (!saveOrUpdate){
+            throw new BusinessException(ErrorResult.error());
+        }
+        //判断是否是双向好友
+        Boolean like = isLike(userId, likeUserId);
+        if (like){
+            //如果是的话，则删除好友
+            messageService.disContacts(likeUserId);
+        }
+        //操作redis
+        redisTemplate.opsForSet().remove(Constants.USER_LIKE_KEY + userId,likeUserId.toString());
+        redisTemplate.opsForSet().add(Constants.USER_NOT_LIKE_KEY + userId,likeUserId.toString());
+
     }
 }

@@ -1,6 +1,8 @@
 package com.itheima.api;
 
+import cn.hutool.core.collection.CollUtil;
 import com.itheima.mongo.RecommendUser;
+import com.itheima.mongo.UserLike;
 import com.itheima.vo.PageResult;
 import org.apache.dubbo.config.annotation.DubboService;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -8,6 +10,9 @@ import org.springframework.data.domain.PageRequest;
 import org.springframework.data.domain.Pageable;
 import org.springframework.data.domain.Sort;
 import org.springframework.data.mongodb.core.MongoTemplate;
+import org.springframework.data.mongodb.core.aggregation.Aggregation;
+import org.springframework.data.mongodb.core.aggregation.AggregationResults;
+import org.springframework.data.mongodb.core.aggregation.TypedAggregation;
 import org.springframework.data.mongodb.core.query.Criteria;
 import org.springframework.data.mongodb.core.query.Query;
 
@@ -59,5 +64,24 @@ public class RecommendUserApiImpl implements RecommendUserApi {
             recommendUser.setScore(95d);
         }
         return recommendUser;
+    }
+
+
+    @Override
+    public List<RecommendUser> queryCardsList(Long userId, int count) {
+        //查询喜不喜欢的用户id
+        Query query = Query.query(Criteria.where("userId").is(userId));
+        List<UserLike> userLikes = mongoTemplate.find(query, UserLike.class);
+        List<Long> likeUserIds = CollUtil.getFieldValues(userLikes, "likeUserId", Long.class);
+        //构造查询推荐的用户的条件
+        Criteria criteria = Criteria.where("toUserId").is(userId).and("userId").nin(likeUserIds);
+        //使用统计函数，随机获取推荐的用户列表
+        TypedAggregation<RecommendUser> aggregation =
+                TypedAggregation.newAggregation(RecommendUser.class,
+                        Aggregation.match(criteria),//指定查询条件
+                        Aggregation.sample(count));
+        AggregationResults<RecommendUser> results = mongoTemplate.aggregate(aggregation,RecommendUser.class);
+        //构造返回
+        return results.getMappedResults();
     }
 }

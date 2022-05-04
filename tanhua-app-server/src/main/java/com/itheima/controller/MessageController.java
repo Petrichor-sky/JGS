@@ -33,7 +33,8 @@ public class MessageController {
      */
     @PostMapping("contacts")
     public ResponseEntity contacts(@RequestBody Map<String,String> map){
-        messageService.contacts(map.get("userId"));
+        Long friendId = Long.valueOf(map.get("userId"));
+        messageService.contacts(friendId);
         return ResponseEntity.ok(null);
     }
 

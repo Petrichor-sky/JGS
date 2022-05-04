@@ -42,6 +42,9 @@ tanhua:
     appkey: 1143220502140452#tanhua1
     clientId: YXA6IDiLzNY6R8aVPA4PYTtOmw
     clientSecret: YXA6Iy1XKSLUsYA0eeKM-XaP6g4bsEs
+  default:
+    recommend:
+      users: 2,3,8,10,18,20,24,29,27,32,36,37,56,64,75,88
 
 # huanxin:
 #   appkey: 1149210719148468#tanhua1

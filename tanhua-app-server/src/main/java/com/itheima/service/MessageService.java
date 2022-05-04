@@ -55,7 +55,7 @@ public class MessageService {
      * 添加好友
      * @param friendId
      */
-    public void contacts(String friendId) {
+    public void contacts(Long friendId) {
         //获取当前登陆者id
         Long userId = ThreadLocalUtils.get();
         //将好友关系添加到环信
@@ -105,5 +105,22 @@ public class MessageService {
         result.setItems(contactVoList);
         result.setCounts(contactVoList.size());
         return result;
+    }
+
+    /**
+     * 删除好友
+     * @param friendId
+     */
+    public void disContacts(Long friendId) {
+        //获取当前用户id
+        Long userId = ThreadLocalUtils.get();
+        //删除环信中的好友关系
+        Boolean aBoolean = template.deleteContact(Constants.HX_USER_PREFIX + userId, Constants.HX_USER_PREFIX + friendId);
+        if (!aBoolean){
+            throw new BusinessException(ErrorResult.error());
+        }
+        //执行删除表中好友的操作
+        friendApi.delete(userId,friendId);
+
     }
 }
