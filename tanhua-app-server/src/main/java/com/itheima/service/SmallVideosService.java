@@ -1,17 +1,20 @@
 package com.itheima.service;
 
 import cn.hutool.core.collection.CollUtil;
+import cn.hutool.core.convert.Convert;
 import cn.hutool.core.util.PageUtil;
 import com.github.tobato.fastdfs.domain.conn.FdfsWebServer;
 import com.github.tobato.fastdfs.domain.fdfs.StorePath;
 import com.github.tobato.fastdfs.service.FastFileStorageClient;
 import com.itheima.api.CommentApi;
+import com.itheima.api.FocusUserApi;
 import com.itheima.api.UserInfoApi;
 import com.itheima.api.VideoApi;
 import com.itheima.enums.CommentType;
 import com.itheima.exception.BusinessException;
 import com.itheima.mongo.Comment;
 import com.itheima.mongo.Constants;
+import com.itheima.mongo.FocusUser;
 import com.itheima.mongo.Video;
 import com.itheima.pojo.ErrorResult;
 import com.itheima.pojo.UserInfo;
@@ -56,6 +59,10 @@ public class SmallVideosService {
     private CommentApi commentApi;
     @Autowired
     private CommentService commentService;
+    @DubboReference
+    private FocusUserApi focusUserApi;
+    @Autowired
+    private MessageService messageService;
     /**
      * 发布视频
      * @param videoThumbnail 视频
@@ -131,6 +138,7 @@ public class SmallVideosService {
             if (!ObjectUtils.isEmpty(userInfo)){
                 VideoVo videoVo = VideoVo.init(userInfo, video);
                 videoVo.setHasLiked(commentApi.hasComment(video.getId().toHexString(),ThreadLocalUtils.get(),CommentType.LIKE) ? 1 : 0);
+                videoVo.setHasFocus(focusUserApi.hasFocus(video.getUserId(),ThreadLocalUtils.get()) ? 1 : 0);
                 vos.add(videoVo);
             }
         }
@@ -227,4 +235,59 @@ public class SmallVideosService {
         redisTemplate.opsForHash().put(key,typeKey,"1");
     }
 
+    /**
+     * 视频用户关注
+     * @param followUserId
+     */
+    public void saveUserFocus(Long followUserId) {
+        Long userId = ThreadLocalUtils.get();
+        Boolean aBoolean = focusUserApi.hasFocus(Convert.toLong(followUserId),userId);
+        if (aBoolean){
+            throw new BusinessException(ErrorResult.error());
+        }
+        //执行保存操作
+        focusUserApi.save(Convert.toLong(followUserId),userId);
+        //设置redis的值
+        redisTemplate.opsForSet().add(Constants.FOCUS_USER + userId,followUserId.toString());
+        //判断是否为互相关注
+        Boolean isFocus = isFocus(followUserId,userId);
+        if (isFocus){
+            //如果是双向关注的话，则执行保存操作
+            messageService.contacts(Convert.toLong(followUserId));
+        }
+    }
+
+    /**
+     * 判断是否互相关注
+     * @param followUserId
+     * @param userId
+     * @return
+     */
+    private Boolean isFocus(Long userId, Long followUserId) {
+        String key = Constants.FOCUS_USER + userId;
+        return redisTemplate.opsForSet().isMember(key,followUserId.toString());
+    }
+
+    /**
+     * 视频用户关注-取消
+     * @param followUserId
+     */
+    public void saveUserUnFocus(Long followUserId) {
+        Long userId = ThreadLocalUtils.get();
+        //判断是否关注
+        Boolean aBoolean = focusUserApi.hasFocus(Convert.toLong(followUserId), userId);
+        if (!aBoolean){
+            throw new BusinessException(ErrorResult.error());
+        }
+        //执行删除操作
+        focusUserApi.delete(Convert.toLong(followUserId),userId);
+        //判断是否为双向关注用户
+        Boolean isFocus = isFocus(followUserId,userId);
+        if (isFocus){
+            //如果为双向关注的话，则执行删除环信和好友操作
+            messageService.disContacts(Convert.toLong(followUserId));
+        }
+        //删除redis的数据
+        redisTemplate.opsForSet().remove(Constants.FOCUS_USER + userId,Constants.FOCUS_USER + followUserId);
+    }
 }

@@ -79,6 +79,23 @@ public class SmallVideosController {
         return ResponseEntity.ok(null);
     }
 
+    /**
+     * 视频用户关注
+     */
+    @PostMapping("/{uid}/userFocus")
+    public ResponseEntity saveUserFocus(@PathVariable("uid")Long followUserId){
+        videosService.saveUserFocus(followUserId);
+        return ResponseEntity.ok(null);
+    }
+    /**
+     * 视频用户关注取消
+     */
+    @PostMapping("/{uid}/userUnFocus")
+    public ResponseEntity saveUserUnFocus(@PathVariable("uid")Long followUserId){
+        videosService.saveUserUnFocus(followUserId);
+        return ResponseEntity.ok(null);
+    }
+
 
 
 
