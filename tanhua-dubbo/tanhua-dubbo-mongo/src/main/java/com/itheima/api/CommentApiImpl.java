@@ -202,4 +202,18 @@ public class CommentApiImpl implements CommentApi{
         //返回输出结果
         return modify.statisCount(comment.getCommentType());
     }
+
+    /**
+     * 根据用户id查询对应的评论信息
+     * @param userId
+     * @return
+     */
+    @Override
+    public List<Comment> findCommentByUserId(Long userId,CommentType commentType,Integer page,Integer pageSize) {
+        Pageable pageable = PageRequest.of(page-1,pageSize,Sort.by(Sort.Order.desc("created")));
+        Query query = Query.query(Criteria.where("publishUserId").is(userId)
+                .and("commentType").is(commentType.getType()))
+                .with(pageable);
+        return mongoTemplate.find(query,Comment.class);
+    }
 }

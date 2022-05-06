@@ -95,7 +95,25 @@ public class SmallVideosController {
         videosService.saveUserUnFocus(followUserId);
         return ResponseEntity.ok(null);
     }
+    /**
+     * 评论点赞
+     *
+     */
+    @PostMapping("comments/{id}/like")
+    public ResponseEntity likeComment(@PathVariable("id")String commentId){
+        videosService.likeComment(commentId);
+        return ResponseEntity.ok(null);
+    }
 
+    /**
+     * 评论点赞
+     *
+     */
+    @PostMapping("comments/{id}/dislike")
+    public ResponseEntity disLikeComment(@PathVariable("id")String commentId){
+        videosService.disLikeComment(commentId);
+        return ResponseEntity.ok(null);
+    }
 
 
 

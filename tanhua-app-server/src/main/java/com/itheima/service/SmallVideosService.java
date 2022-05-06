@@ -139,6 +139,7 @@ public class SmallVideosService {
                 VideoVo videoVo = VideoVo.init(userInfo, video);
                 videoVo.setHasLiked(commentApi.hasComment(video.getId().toHexString(),ThreadLocalUtils.get(),CommentType.LIKE) ? 1 : 0);
                 videoVo.setHasFocus(focusUserApi.hasFocus(video.getUserId(),ThreadLocalUtils.get()) ? 1 : 0);
+                videoVo.setLikeCount(commentApi.countByPublishId(video.getId().toHexString()));
                 vos.add(videoVo);
             }
         }
@@ -289,5 +290,21 @@ public class SmallVideosService {
         }
         //删除redis的数据
         redisTemplate.opsForSet().remove(Constants.FOCUS_USER + userId,Constants.FOCUS_USER + followUserId);
+    }
+
+    /**
+     * 评论点赞
+     * @param commentId
+     */
+    public void likeComment(String commentId) {
+        commentService.likeComment(commentId);
+    }
+
+    /**
+     * 评论点赞取消
+     * @param commentId
+     */
+    public void disLikeComment(String commentId) {
+        commentService.dislikeComment(commentId);
     }
 }

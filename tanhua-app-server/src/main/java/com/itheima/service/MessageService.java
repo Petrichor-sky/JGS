@@ -1,24 +1,25 @@
 package com.itheima.service;
 
 import cn.hutool.core.collection.CollUtil;
-import com.itheima.api.FriendApi;
-import com.itheima.api.UserApi;
-import com.itheima.api.UserInfoApi;
+import com.baomidou.mybatisplus.core.metadata.IPage;
+import com.itheima.api.*;
+import com.itheima.enums.CommentType;
 import com.itheima.exception.BusinessException;
+import com.itheima.mongo.Comment;
 import com.itheima.mongo.Constants;
 import com.itheima.mongo.Friend;
+import com.itheima.pojo.Announcement;
 import com.itheima.pojo.ErrorResult;
 import com.itheima.pojo.User;
 import com.itheima.pojo.UserInfo;
 import com.itheima.template.HuanXinTemplate;
 import com.itheima.utils.ThreadLocalUtils;
-import com.itheima.vo.ContactVo;
-import com.itheima.vo.PageResult;
-import com.itheima.vo.UserInfoVo;
+import com.itheima.vo.*;
 import org.apache.dubbo.config.annotation.DubboReference;
 import org.springframework.beans.BeanUtils;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
+import org.springframework.util.ObjectUtils;
 
 import java.util.ArrayList;
 import java.util.List;
@@ -35,6 +36,10 @@ public class MessageService {
     private HuanXinTemplate template;
     @DubboReference
     private FriendApi friendApi;
+    @DubboReference
+    private CommentApi commentApi;
+    @DubboReference
+    private AnnouncemenApi announcemenApi;
 
     public UserInfoVo findUserInfoByHuanxin(String huanxinId) {
         //根据环信id来查询用户
@@ -122,5 +127,133 @@ public class MessageService {
         //执行删除表中好友的操作
         friendApi.delete(userId,friendId);
 
+    }
+
+    /**
+     * 评论列表
+     * @param page
+     * @param pageSize
+     * @return
+     */
+    public PageResult getComments(Integer page, Integer pageSize) {
+        //获取当前用户的id
+        Long userId = ThreadLocalUtils.get();
+        //根据userId进行查询并分页
+        List<Comment> commentList = commentApi.findCommentByUserId(userId, CommentType.COMMENT,page,pageSize);
+        if (CollUtil.isEmpty(commentList)){
+            return new PageResult();
+        }
+        //通过list集合获取到所有的用户id
+        List<Long> userIds = CollUtil.getFieldValues(commentList, "userId", Long.class);
+        //创建返回值对象
+        List<CommentVo> vos = new ArrayList<>();
+        //调用用户信息
+        Map<Long, UserInfo> map = userInfoApi.findByIds(userIds, null);
+        for (Comment comment : commentList) {
+            UserInfo userInfo = map.get(comment.getUserId());
+            if (!ObjectUtils.isEmpty(userInfo)){
+                vos.add(CommentVo.init(userInfo,comment));
+            }
+        }
+        PageResult result = new PageResult();
+        result.setPage(page);
+        result.setPagesize(pageSize);
+        result.setItems(vos);
+        result.setCounts(vos.size());
+        return result;
+    }
+
+    /**
+     * 点赞列表
+     * @param page
+     * @param pageSize
+     * @return
+     */
+    public PageResult getLikes(Integer page, Integer pageSize) {
+        //获取当前登陆者的Id
+        Long userId = ThreadLocalUtils.get();
+        List<Comment> commentList = commentApi.findCommentByUserId(userId, CommentType.LIKE, page, pageSize);
+        if (CollUtil.isEmpty(commentList)){
+            return new PageResult();
+        }
+        //获取到对应的userId
+        List<Long> userIds = CollUtil.getFieldValues(commentList, "userId", Long.class);
+        //创建封装集合
+        List<CommentVo> vos = new ArrayList<>();
+        //根据ids获取对应的用户信息
+        Map<Long, UserInfo> map = userInfoApi.findByIds(userIds, null);
+        //遍历
+        for (Comment comment : commentList) {
+            UserInfo userInfo = map.get(comment.getUserId());
+            if (!ObjectUtils.isEmpty(userInfo)){
+                vos.add(CommentVo.init(userInfo,comment));
+            }
+        }
+        //创建返回结果对象
+        PageResult result = new PageResult();
+        result.setPage(page);
+        result.setPagesize(pageSize);
+        result.setItems(vos);
+        result.setCounts(vos.size());
+        return result;
+    }
+
+    /**
+     * 获取喜欢列表
+     * @param page
+     * @param pageSize
+     * @return
+     */
+    public PageResult getLoves(Integer page, Integer pageSize) {
+        //获取当前登陆者的Id
+        Long userId = ThreadLocalUtils.get();
+        List<Comment> commentList = commentApi.findCommentByUserId(userId, CommentType.LOVE, page, pageSize);
+        if (CollUtil.isEmpty(commentList)){
+            return new PageResult();
+        }
+        //获取到对应的userId
+        List<Long> userIds = CollUtil.getFieldValues(commentList, "userId", Long.class);
+        //创建封装集合
+        List<CommentVo> vos = new ArrayList<>();
+        //根据ids获取对应的用户信息
+        Map<Long, UserInfo> map = userInfoApi.findByIds(userIds, null);
+        //遍历
+        for (Comment comment : commentList) {
+            UserInfo userInfo = map.get(comment.getUserId());
+            if (!ObjectUtils.isEmpty(userInfo)){
+                vos.add(CommentVo.init(userInfo,comment));
+            }
+        }
+        //创建返回结果对象
+        PageResult result = new PageResult();
+        result.setPage(page);
+        result.setPagesize(pageSize);
+        result.setItems(vos);
+        result.setCounts(vos.size());
+        return result;
+    }
+
+    /**
+     * 公告列表
+     * @param page
+     * @param pageSize
+     * @return
+     */
+    public PageResult getAnnouncements(Integer page, Integer pageSize) {
+        IPage<Announcement> iPage = announcemenApi.findAll(page,pageSize);
+        //获取对应的数据
+        List<Announcement> list = iPage.getRecords();
+        //创建封装对象
+        List<AnnouncementVo> vos = new ArrayList<>();
+        for (Announcement announcement : list) {
+            vos.add(AnnouncementVo.init(announcement));
+        }
+        //构建返回值对象
+        PageResult result = new PageResult();
+        result.setPage(page);
+        result.setPagesize(pageSize);
+        result.setItems(vos);
+        result.setCounts(list.size());
+        return result;
     }
 }

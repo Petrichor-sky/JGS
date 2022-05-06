@@ -22,4 +22,7 @@ public interface CommentApi {
     Integer saveLikeComment(Comment comment,String commentId);
 
     Integer deleteLikeComment(Comment comment);
+
+    List<Comment> findCommentByUserId(Long userId,CommentType commentType,Integer page,Integer pageSize);
+
 }
