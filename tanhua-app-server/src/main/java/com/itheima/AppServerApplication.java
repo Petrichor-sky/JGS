@@ -5,6 +5,7 @@ import org.springframework.boot.autoconfigure.SpringBootApplication;
 import org.springframework.boot.autoconfigure.data.mongo.MongoDataAutoConfiguration;
 import org.springframework.boot.autoconfigure.jdbc.DataSourceAutoConfiguration;
 import org.springframework.boot.autoconfigure.mongo.MongoAutoConfiguration;
+import org.springframework.cache.annotation.EnableCaching;
 import org.springframework.scheduling.annotation.EnableAsync;
 
 @SpringBootApplication(exclude = {
@@ -12,6 +13,7 @@ import org.springframework.scheduling.annotation.EnableAsync;
         MongoAutoConfiguration.class,
         MongoDataAutoConfiguration.class})
 @EnableAsync
+@EnableCaching
 public class AppServerApplication {
     public static void main(String[] args) {
         SpringApplication.run(AppServerApplication.class,args);

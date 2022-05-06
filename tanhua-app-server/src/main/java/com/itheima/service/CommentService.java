@@ -21,6 +21,7 @@ import org.bson.types.ObjectId;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.data.redis.core.RedisTemplate;
 import org.springframework.stereotype.Service;
+import org.springframework.util.StringUtils;
 
 import java.util.ArrayList;
 import java.util.List;
@@ -49,7 +50,7 @@ public class CommentService {
         //动态id
         List<Comment> commentList = commentApi.findComments(movementId,page,pageSize);
         PageResult result = new PageResult();
-        result.setPagesize(page);
+        result.setPage(page);
         result.setPagesize(pageSize);
         if (CollUtil.isEmpty(commentList)){
             result.setItems(null);
@@ -206,7 +207,31 @@ public class CommentService {
      * @return
      */
     public List<VisitorVo> visitors() {
-        //获取当前用户的id
+        //1.查询访问时间
+        String key = Constants.VISITORS_USER;
+        String hashKey = String.valueOf(ThreadLocalUtils.get());
+        String value = (String) redisTemplate.opsForHash().get(key,hashKey);
+        Long date = StringUtils.isEmpty(value) ? null : Long.valueOf(value);
+        //2.调用API查询数据库表
+        List<Visitors> list = visitorsApi.queryMyVisitors(date,ThreadLocalUtils.get());
+        if (CollUtil.isEmpty(list)){
+            return new ArrayList<>();
+        }
+        //3.提取用户id
+        List<Long> userIds = CollUtil.getFieldValues(list, "visitorUserId", Long.class);
+        //4.查看用户详情
+        Map<Long, UserInfo> map = userInfoApi.findByIds(userIds, null);
+        //5.构造返回值
+        List<VisitorVo> vos = new ArrayList<>();
+        for (Visitors visitors : list) {
+            UserInfo userInfo = map.get(visitors.getVisitorUserId());
+            if (userInfo != null){
+                vos.add(VisitorVo.init(userInfo,visitors));
+            }
+        }
+        return vos;
+
+   /*     //获取当前用户的id
         Long uid = ThreadLocalUtils.get();
         List<Visitors> visitorsList = visitorsApi.findVisitorsByUserId(uid);
         //遍历
@@ -214,8 +239,8 @@ public class CommentService {
         for (Visitors visitor : visitorsList) {
             UserInfo userInfo = userInfoApi.findById(visitor.getUserId());
             visitorVoList.add(VisitorVo.init(userInfo, visitor));
-        }
-        return visitorVoList;
+        }*/
+        //return visitorVoList;
     }
 
     /**

@@ -10,6 +10,7 @@ import com.itheima.dto.RecommendUserDto;
 import com.itheima.exception.BusinessException;
 import com.itheima.mongo.Constants;
 import com.itheima.mongo.RecommendUser;
+import com.itheima.mongo.Visitors;
 import com.itheima.pojo.ErrorResult;
 import com.itheima.pojo.Question;
 import com.itheima.pojo.UserInfo;
@@ -25,10 +26,8 @@ import org.springframework.data.redis.core.RedisTemplate;
 import org.springframework.stereotype.Service;
 import org.springframework.util.ObjectUtils;
 
-import java.util.ArrayList;
-import java.util.HashMap;
-import java.util.List;
-import java.util.Map;
+import java.text.SimpleDateFormat;
+import java.util.*;
 
 @Service
 public class TanHuaService {
@@ -51,6 +50,8 @@ public class TanHuaService {
     private RedisTemplate<String,String> redisTemplate;
     @Autowired
     private MessageService messageService;
+    @DubboReference
+    private VisitorsApi visitorsApi;
     @DubboReference
     private UserLocationApi userLocationApi;
 
@@ -126,7 +127,18 @@ public class TanHuaService {
         RecommendUser recommendUser = recommendUserService.queryById(id,ThreadLocalUtils.get());
         //查询id用户的详细信息
         UserInfo userInfo = userInfoApi.findById(id);
+        //构造访客数据
+        Visitors visitors = new Visitors();
+        visitors.setUserId(id);
+        visitors.setVisitorUserId(ThreadLocalUtils.get());
+        visitors.setFrom("首页");
+        visitors.setDate(System.currentTimeMillis());
+        visitors.setVisitDate(new SimpleDateFormat("yyyyMMdd").format(new Date()));
+        visitors.setScore(recommendUser.getScore());
+        //执行保存操作
+        visitorsApi.save(visitors);
         return TodayBest.init(userInfo,recommendUser);
+
     }
 
     /**

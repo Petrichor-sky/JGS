@@ -16,7 +16,6 @@ import org.springframework.context.annotation.Bean;
         HuanXinProperties.class
 })
 public class TanhuaAutoConfiguration {
-
     @Bean
     public OssTemplate ossTemplate(OssProperties properties) {
         return new OssTemplate(properties);
@@ -26,7 +25,5 @@ public class TanhuaAutoConfiguration {
         return new AipFaceTemplate();
     }
     @Bean
-    public HuanXinTemplate huanXinTemplate(HuanXinProperties properties){
-        return new HuanXinTemplate(properties);
-    }
+    public HuanXinTemplate huanXinTemplate(HuanXinProperties properties){return new HuanXinTemplate(properties);}
 }

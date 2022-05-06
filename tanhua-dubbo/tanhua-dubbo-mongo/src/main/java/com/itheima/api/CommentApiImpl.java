@@ -4,6 +4,7 @@ import cn.hutool.core.collection.CollUtil;
 import com.itheima.mongo.Comment;
 import com.itheima.enums.CommentType;
 import com.itheima.mongo.Movement;
+import com.itheima.mongo.Video;
 import org.apache.dubbo.config.annotation.DubboService;
 import org.bson.types.ObjectId;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -44,6 +45,10 @@ public class CommentApiImpl implements CommentApi{
         if (!ObjectUtils.isEmpty(movement)){
              comment.setPublishUserId(movement.getUserId());
         }
+        Video video = mongoTemplate.findById(comment.getPublishId(), Video.class);
+        if (!ObjectUtils.isEmpty(video)){
+            comment.setPublishUserId(video.getUserId());
+        }
         //保存到数据库
         mongoTemplate.save(comment);
         //更新动态表中的对应字段
@@ -60,9 +65,15 @@ public class CommentApiImpl implements CommentApi{
         FindAndModifyOptions options = new FindAndModifyOptions();
         //获取更新后的最新数据
         options.returnNew(true);
-        Movement modify = mongoTemplate.findAndModify(query, update, options, Movement.class);
-        //5.获取最新的评论数量并返回
-        return modify.statisCount(comment.getCommentType());
+        if (!ObjectUtils.isEmpty(movement)){
+            Movement modify = mongoTemplate.findAndModify(query, update, options, Movement.class);
+            return modify.statisCount(comment.getCommentType());
+        }
+        if (!ObjectUtils.isEmpty(video)){
+            Video modify = mongoTemplate.findAndModify(query, update, options, Video.class);
+            return modify.statisCount(comment.getCommentType());
+        }
+        return null;
     }
 
     /**
@@ -115,13 +126,29 @@ public class CommentApiImpl implements CommentApi{
         }else {
             update.inc("loveCount",-1);
         }
+        //查询动态
+        Movement movement = mongoTemplate.findById(comment.getPublishId(), Movement.class);
+        //想comment对象设置被评论人属性
+        if (!ObjectUtils.isEmpty(movement)){
+            comment.setPublishUserId(movement.getUserId());
+        }
+        Video video = mongoTemplate.findById(comment.getPublishId(), Video.class);
+        if (!ObjectUtils.isEmpty(video)){
+            comment.setPublishUserId(video.getUserId());
+        }
         //设置更新参数
         FindAndModifyOptions options = new FindAndModifyOptions();
         //获取更新后的最新数据
         options.returnNew(true);
-        Movement modify = mongoTemplate.findAndModify(movementQuery, update, options, Movement.class);
-        //获取最新的评论数据并返回
-        return modify.statisCount(comment.getCommentType());
+        if (!ObjectUtils.isEmpty(movement)){
+            Movement modify = mongoTemplate.findAndModify(movementQuery, update, options, Movement.class);
+            return modify.statisCount(comment.getCommentType());
+        }
+        if (!ObjectUtils.isEmpty(video)){
+            Video modify = mongoTemplate.findAndModify(movementQuery, update, options, Video.class);
+            return modify.statisCount(comment.getCommentType());
+        }
+        return null;
     }
 
     @Override

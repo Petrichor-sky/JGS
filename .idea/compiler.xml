@@ -14,10 +14,13 @@
         <module name="tanhua-dubbo-db" />
         <module name="tanhua-model" />
         <module name="tanhua-dubbo-mongo" />
+        <module name="tanhua-file-starter" />
         <module name="tanhua-app-server" />
       </profile>
     </annotationProcessing>
-    <bytecodeTargetLevel target="8" />
+    <bytecodeTargetLevel target="8">
+      <module name="tanhua-file" target="1.8" />
+    </bytecodeTargetLevel>
   </component>
   <component name="JavacSettings">
     <option name="ADDITIONAL_OPTIONS_OVERRIDE">
@@ -29,6 +32,8 @@
       <module name="tanhua-dubbo-db" options="-parameters" />
       <module name="tanhua-dubbo-interface" options="-parameters" />
       <module name="tanhua-dubbo-mongo" options="-parameters" />
+      <module name="tanhua-file" options="-parameters" />
+      <module name="tanhua-file-starter" options="-parameters" />
       <module name="tanhua-model" options="-parameters" />
     </option>
   </component>

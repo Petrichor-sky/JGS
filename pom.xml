@@ -10,6 +10,7 @@
         <module>tanhua-commons</module>
         <module>tanhua-dubbo</module>
         <module>tanhua-model</module>
+        <module>tanhua-file-starter</module>
     </modules>
     <parent>
         <artifactId>spring-boot-starter-parent</artifactId>

@@ -53,4 +53,7 @@ public class Constants {
 
     //用户不喜欢Redis的key
     public static final String USER_NOT_LIKE_KEY="USER_NOT_LIKE_SET_";
+
+    //访问用户
+    public static final String VISITORS_USER = "VISITOR_USER";
 }
