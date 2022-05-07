@@ -6,6 +6,8 @@ import com.itheima.mongo.Visitors;
 import org.apache.dubbo.config.annotation.DubboService;
 import org.bson.types.ObjectId;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.data.domain.PageRequest;
+import org.springframework.data.domain.Pageable;
 import org.springframework.data.domain.Sort;
 import org.springframework.data.mongodb.core.MongoTemplate;
 import org.springframework.data.mongodb.core.query.Criteria;
@@ -20,8 +22,9 @@ public class VisitorsApiImpl implements VisitorsApi{
     private MongoTemplate mongoTemplate;
 
     @Override
-    public List<Visitors> findVisitorsByUserId(Long uid) {
-        Query query = Query.query(Criteria.where("visitorUserId").is(uid));
+    public List<Visitors> findVisitorsByUserId(Long userId,Integer page,Integer pageSize) {
+        Pageable pageable = PageRequest.of(page-1,pageSize,Sort.by(Sort.Order.desc("score")));
+        Query query = Query.query(Criteria.where("userId").is(userId)).with(pageable);
         return mongoTemplate.find(query,Visitors.class);
     }
 

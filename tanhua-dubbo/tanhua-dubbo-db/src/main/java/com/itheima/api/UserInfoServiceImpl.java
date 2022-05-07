@@ -9,6 +9,7 @@ import com.baomidou.mybatisplus.core.conditions.query.QueryWrapper;
 import com.itheima.dto.RecommendUserDto;
 import com.itheima.mapper.UserInfoMapper;
 import com.itheima.mongo.Friend;
+import com.itheima.mongo.UserLike;
 import com.itheima.pojo.User;
 import com.itheima.pojo.UserInfo;
 import org.apache.dubbo.config.annotation.DubboService;
@@ -80,4 +81,6 @@ public class UserInfoServiceImpl implements UserInfoApi{
         List<UserInfo> list = userInfoMapper.selectList(queryWrapper);
         return CollUtil.fieldValueMap(list,"id");
     }
+
+
 }

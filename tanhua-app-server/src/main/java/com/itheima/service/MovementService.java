@@ -95,8 +95,10 @@ public class MovementService {
         List<MovementsVo> list = new ArrayList<>();
         //遍历
         for (Movement movement : movementList) {
-            MovementsVo movementsVo = MovementsVo.init(userInfo, movement);
-            list.add(movementsVo);
+            MovementsVo vo = MovementsVo.init(userInfo, movement);
+            vo.setHasLiked(commentApi.hasComment(movement.getId().toHexString(),ThreadLocalUtils.get(), CommentType.LIKE) ? 1 : 0);
+            vo.setCommentCount(commentApi.countByPublishId(movement.getId().toHexString()));
+            list.add(vo);
         }
         Integer count = movementApi.countByUserId(userId);
         PageResult result = new PageResult();

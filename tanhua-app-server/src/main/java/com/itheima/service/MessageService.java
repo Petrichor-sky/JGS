@@ -8,6 +8,7 @@ import com.itheima.exception.BusinessException;
 import com.itheima.mongo.Comment;
 import com.itheima.mongo.Constants;
 import com.itheima.mongo.Friend;
+import com.itheima.mongo.UserLike;
 import com.itheima.pojo.Announcement;
 import com.itheima.pojo.ErrorResult;
 import com.itheima.pojo.User;
@@ -146,13 +147,13 @@ public class MessageService {
         //通过list集合获取到所有的用户id
         List<Long> userIds = CollUtil.getFieldValues(commentList, "userId", Long.class);
         //创建返回值对象
-        List<CommentVo> vos = new ArrayList<>();
+        List<UserInfoAndLikeVo> vos = new ArrayList<>();
         //调用用户信息
         Map<Long, UserInfo> map = userInfoApi.findByIds(userIds, null);
         for (Comment comment : commentList) {
             UserInfo userInfo = map.get(comment.getUserId());
             if (!ObjectUtils.isEmpty(userInfo)){
-                vos.add(CommentVo.init(userInfo,comment));
+                vos.add(UserInfoAndLikeVo.init(userInfo,comment));
             }
         }
         PageResult result = new PageResult();
@@ -179,14 +180,14 @@ public class MessageService {
         //获取到对应的userId
         List<Long> userIds = CollUtil.getFieldValues(commentList, "userId", Long.class);
         //创建封装集合
-        List<CommentVo> vos = new ArrayList<>();
+        List<UserInfoAndLikeVo> vos = new ArrayList<>();
         //根据ids获取对应的用户信息
         Map<Long, UserInfo> map = userInfoApi.findByIds(userIds, null);
         //遍历
         for (Comment comment : commentList) {
             UserInfo userInfo = map.get(comment.getUserId());
             if (!ObjectUtils.isEmpty(userInfo)){
-                vos.add(CommentVo.init(userInfo,comment));
+                vos.add(UserInfoAndLikeVo.init(userInfo,comment));
             }
         }
         //创建返回结果对象
@@ -204,24 +205,28 @@ public class MessageService {
      * @param pageSize
      * @return
      */
+    @DubboReference
+    private UserLikeApi userLikeApi;
     public PageResult getLoves(Integer page, Integer pageSize) {
         //获取当前登陆者的Id
         Long userId = ThreadLocalUtils.get();
-        List<Comment> commentList = commentApi.findCommentByUserId(userId, CommentType.LOVE, page, pageSize);
-        if (CollUtil.isEmpty(commentList)){
+        List<UserLike> userLikeList = userLikeApi.findInfoByType3("3",null,userId,page,pageSize);
+        if (CollUtil.isEmpty(userLikeList)){
             return new PageResult();
         }
         //获取到对应的userId
-        List<Long> userIds = CollUtil.getFieldValues(commentList, "userId", Long.class);
+        List<Long> userIds = CollUtil.getFieldValues(userLikeList, "userId", Long.class);
         //创建封装集合
-        List<CommentVo> vos = new ArrayList<>();
+        List<UserInfoAndLikeVo> vos = new ArrayList<>();
         //根据ids获取对应的用户信息
         Map<Long, UserInfo> map = userInfoApi.findByIds(userIds, null);
         //遍历
-        for (Comment comment : commentList) {
-            UserInfo userInfo = map.get(comment.getUserId());
+        for (UserLike userLike : userLikeList) {
+            UserInfo userInfo = map.get(userLike.getUserId());
             if (!ObjectUtils.isEmpty(userInfo)){
-                vos.add(CommentVo.init(userInfo,comment));
+                UserInfoAndLikeVo vo = UserInfoAndLikeVo.init(userInfo, userLike);
+                vo.setId(userInfo.getId().toString());
+                vos.add(vo);
             }
         }
         //创建返回结果对象

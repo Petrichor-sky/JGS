@@ -1,5 +1,6 @@
 package com.itheima.controller;
 
+import com.itheima.pojo.Count;
 import com.itheima.pojo.Question;
 import com.itheima.pojo.UserInfo;
 import com.itheima.service.QuestionService;
@@ -114,4 +115,82 @@ public class UsersController {
         settingsService.settings(map);
         return ResponseEntity.ok(null);
     }
+
+    /**
+     * 互相喜欢，喜欢，粉丝谁看过我
+     * @param page
+     * @param pageSize
+     * @param type
+     * @param nickname
+     * @return
+     */
+    @GetMapping("friends/{type}")
+    public ResponseEntity<PageResult> getList(@RequestParam(value = "page",defaultValue = "1") Integer page,
+                                              @RequestParam(value = "pageSize",defaultValue = "5") Integer pageSize,
+                                              @PathVariable("type")String type,
+                                              String nickname){
+        PageResult result = usersService.getList(type,nickname,page,pageSize);
+        return ResponseEntity.ok(result);
+    }
+
+    /**
+     * 互相喜欢，喜欢，粉丝，统计数量
+     * @return
+     */
+    @GetMapping("counts")
+    public ResponseEntity<Count> getCount(){
+        Count count = usersService.getCount();
+        return ResponseEntity.ok(count);
+    }
+
+    /**
+     * 修改手机号-发送短信验证码
+     * @return
+     */
+    @PostMapping("phone/sendVerificationCode")
+    public ResponseEntity sendVerificationCode(){
+        usersService.sendVerificationCode();
+        return ResponseEntity.ok(null);
+    }
+
+    /**
+     * 修改手机号-校验短信验证码
+     * @param params
+     * @return
+     */
+    @PostMapping("phone/checkVerificationCode")
+    public ResponseEntity checkVerificationCode(@RequestBody Map<String,String> params){
+        Map<String,Boolean> map = usersService.checkVerificationCode(params);
+        return ResponseEntity.ok(map);
+    }
+
+    /**
+     * 修改手机号-保存
+     */
+    @PostMapping("phone")
+    public ResponseEntity savePhone(@RequestBody Map<String,String> map){
+        usersService.savePhone(map);
+        return ResponseEntity.ok(null);
+    }
+
+    /**
+     * 喜欢 - 取消
+     */
+    @DeleteMapping("like/{id}")
+    public ResponseEntity deleteLove(@PathVariable("id")Long likeUserId){
+        usersService.deleteLove(likeUserId);
+        return ResponseEntity.ok(null);
+    }
+
+    /**
+     * 粉丝 - 喜欢
+     */
+    @PostMapping("fans/{id}")
+    public ResponseEntity fansLove(@PathVariable("id")Long likeUserId){
+        usersService.fansLove(likeUserId);
+        return ResponseEntity.ok(null);
+    }
+
+
+
 }

@@ -5,7 +5,7 @@ import com.itheima.mongo.Visitors;
 import java.util.List;
 
 public interface VisitorsApi {
-    List<Visitors> findVisitorsByUserId(Long uid);
+    List<Visitors> findVisitorsByUserId(Long userId,Integer page,Integer pageSize);
 
    /* //保存数据，我的id，访客的id，来源
     String save(Long userId,Long visitorUserId,String from);

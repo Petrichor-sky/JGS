@@ -1,6 +1,7 @@
 package com.itheima.api;
 
 import com.itheima.dto.RecommendUserDto;
+import com.itheima.mongo.UserLike;
 import com.itheima.pojo.User;
 import com.itheima.pojo.UserInfo;
 

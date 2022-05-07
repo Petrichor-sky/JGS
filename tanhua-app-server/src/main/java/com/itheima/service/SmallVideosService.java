@@ -139,7 +139,7 @@ public class SmallVideosService {
                 VideoVo videoVo = VideoVo.init(userInfo, video);
                 videoVo.setHasLiked(commentApi.hasComment(video.getId().toHexString(),ThreadLocalUtils.get(),CommentType.LIKE) ? 1 : 0);
                 videoVo.setHasFocus(focusUserApi.hasFocus(video.getUserId(),ThreadLocalUtils.get()) ? 1 : 0);
-                videoVo.setLikeCount(commentApi.countByPublishId(video.getId().toHexString()));
+                videoVo.setLikeCount(video.getLikeCount());
                 vos.add(videoVo);
             }
         }
