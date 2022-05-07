@@ -18,4 +18,7 @@ public interface UserInfoApi {
     UserInfo findInfoById(Long userId, RecommendUserDto recommendUserDto);
 
     Map<Long, UserInfo> findByIds(List<Long> friendIds, UserInfo userInfo);
+
+    List<UserInfo>  findByGender(String gender);
+
 }

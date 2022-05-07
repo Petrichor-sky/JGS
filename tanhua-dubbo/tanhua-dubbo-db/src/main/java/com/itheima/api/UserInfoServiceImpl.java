@@ -82,5 +82,15 @@ public class UserInfoServiceImpl implements UserInfoApi{
         return CollUtil.fieldValueMap(list,"id");
     }
 
-
+    /**
+     * 查询异性信息
+     * @param gender
+     * @return
+     */
+    @Override
+    public List<UserInfo> findByGender(String gender) {
+        LambdaQueryWrapper<UserInfo> queryWrapper = new LambdaQueryWrapper<>();
+        queryWrapper.eq(UserInfo::getGender,gender);
+        return userInfoMapper.selectList(queryWrapper);
+    }
 }

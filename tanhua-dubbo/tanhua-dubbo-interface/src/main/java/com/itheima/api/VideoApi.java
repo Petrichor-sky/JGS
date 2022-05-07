@@ -12,4 +12,6 @@ public interface VideoApi {
     List<Video> queryVideoList(int page, Integer pageSize);
 
     Video findById(String videoId);
+
+    List<Video> findByUserId(Long id);
 }

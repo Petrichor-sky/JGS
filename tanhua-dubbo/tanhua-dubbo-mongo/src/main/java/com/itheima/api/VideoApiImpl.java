@@ -57,4 +57,10 @@ public class VideoApiImpl implements VideoApi{
     public Video findById(String videoId) {
         return mongoTemplate.findById(new ObjectId(videoId), Video.class);
     }
+
+    @Override
+    public List<Video> findByUserId(Long userId) {
+        Query query = Query.query(Criteria.where("userId").is(userId));
+        return mongoTemplate.find(query,Video.class);
+    }
 }
