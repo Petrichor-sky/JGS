@@ -1,14 +1,15 @@
 package com.itheima.service;
 
 import cn.hutool.core.collection.CollUtil;
+import com.alibaba.fastjson.JSON;
 import com.itheima.api.CommentApi;
 import com.itheima.api.MovementApi;
 import com.itheima.api.UserInfoApi;
 import com.itheima.enums.CommentType;
 import com.itheima.exception.BusinessException;
+import com.itheima.mongo.Constants;
 import com.itheima.mongo.Movement;
 import com.itheima.mongo.MovementTimeLine;
-import com.itheima.mongo.RecommendMovement;
 import com.itheima.pojo.ErrorResult;
 import com.itheima.pojo.UserInfo;
 import com.itheima.template.OssTemplate;
@@ -16,7 +17,6 @@ import com.itheima.utils.ThreadLocalUtils;
 import com.itheima.vo.MovementsVo;
 import com.itheima.vo.PageResult;
 import org.apache.dubbo.config.annotation.DubboReference;
-import org.bson.types.ObjectId;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.data.redis.core.RedisTemplate;
 import org.springframework.stereotype.Service;
@@ -24,10 +24,7 @@ import org.springframework.util.ObjectUtils;
 import org.springframework.util.StringUtils;
 import org.springframework.web.multipart.MultipartFile;
 
-import java.util.ArrayList;
-import java.util.Arrays;
-import java.util.Collections;
-import java.util.List;
+import java.util.*;
 import java.util.stream.Collectors;
 
 @Service
@@ -47,6 +44,8 @@ public class MovementService {
     private RedisTemplate<String,String> redisTemplate;
     @DubboReference
     private CommentApi commentApi;
+    @Autowired
+    private MqMessageService mqMessageService;
     /**
      * 发布动态
      * @param movement
@@ -58,6 +57,17 @@ public class MovementService {
         }
         //获取当前登录者id
         Long userId = ThreadLocalUtils.get();
+        String value = redisTemplate.opsForValue().get(Constants.USER_FREEZE + userId);
+        if (!org.apache.commons.lang3.StringUtils.isEmpty(value)) {
+            Map redisMap = JSON.parseObject(value, Map.class);
+            String freezingRange = redisMap.get("freezingRange").toString();
+            if ("3".equals(freezingRange)) {
+                throw new BusinessException(ErrorResult.freezeError3());
+            }
+        }
+        //向MQ中发送消息
+        mqMessageService.sendLogMessage(ThreadLocalUtils.get(),"0201","movement",movement.getId().toHexString());
+
         //将文件上传到阿里云oss，获取地址
         List<String> medias = new ArrayList<>();
         try {
@@ -196,7 +206,14 @@ public class MovementService {
         return result;
     }
 
+    /**
+     * 根据id进行查询
+     * @param movementId
+     * @return
+     */
     public MovementsVo findMovementById(String movementId) {
+        //向MQ中发送消息
+        mqMessageService.sendLogMessage(ThreadLocalUtils.get(),"0202","movement",movementId);
         //获取动态信息
         Movement movement = movementApi.findByMoveId(movementId);
         if (ObjectUtils.isEmpty(movement)){

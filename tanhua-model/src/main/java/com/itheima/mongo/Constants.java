@@ -9,6 +9,12 @@ public class Constants {
 	//推荐动态
 	public static final String MOVEMENTS_RECOMMEND = "MOVEMENTS_RECOMMEND_";
 
+    //管理后台验证码redis的key
+    public static final String CAP_CODE = "CAP_CODE_";
+
+    //冻结用户状态KEY
+    public static final String USER_FREEZE = "USER_FREEZE_";
+
     //推荐视频
     public static final String VIDEOS_RECOMMEND = "VIDEOS_RECOMMEND_";
 

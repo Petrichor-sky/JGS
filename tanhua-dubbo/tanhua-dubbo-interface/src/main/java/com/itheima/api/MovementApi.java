@@ -1,6 +1,7 @@
 package com.itheima.api;
 
 import com.itheima.mongo.Movement;
+import org.bson.types.ObjectId;
 
 import java.util.List;
 
@@ -20,4 +21,10 @@ public interface MovementApi {
     Movement findByMoveId(String movementId);
 
     Integer countByUserId(Long userId);
+
+    List<Movement> findAllMovements(Long uid, Integer state, Integer page, Integer pageSize);
+
+    void updateStateById(ObjectId objectId,String type);
+
+    Integer countByState(Integer state);
 }

@@ -3,10 +3,8 @@ package com.itheima.api;
 import cn.hutool.core.collection.CollUtil;
 import cn.hutool.core.convert.Convert;
 import com.itheima.mongo.UserLike;
-import com.itheima.mongo.Visitors;
 import com.itheima.pojo.Count;
 import com.itheima.pojo.UserInfo;
-import org.apache.catalina.User;
 import org.apache.dubbo.config.annotation.DubboService;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.data.domain.PageRequest;
@@ -78,7 +76,7 @@ public class UserLikeApiImpl implements UserLikeApi {
         //构造分页和查询条件
         Pageable pageable = PageRequest.of(page - 1, pageSize, Sort.by(Sort.Order.desc("created")));
         Query query = Query.query(Criteria.where("userId").is(userId)
-                .and("isLike").is(true)).with(pageable);
+                .and("isLike").is(true));
         List<UserLike> userLikeList = mongoTemplate.find(query, UserLike.class);
 
         if ("1".equals(type)) {
@@ -86,7 +84,7 @@ public class UserLikeApiImpl implements UserLikeApi {
             for (UserLike userLike : userLikeList) {
                 Query query2 = Query.query(Criteria.where("userId").is(userLike.getLikeUserId())
                         .and("likeUserId").is(userId)
-                        .and("isLike").is(true));
+                        .and("isLike").is(true)).with(pageable);
                 boolean exists = mongoTemplate.exists(query2, UserLike.class);
                 if (exists) {
                     vos.add(userLike);
@@ -94,8 +92,9 @@ public class UserLikeApiImpl implements UserLikeApi {
             }
             return vos;
         } else if ("2".equals(type)) {
+            query.with(pageable);
             //我喜欢的数据
-            return userLikeList;
+            return mongoTemplate.find(query, UserLike.class);
         }
         return null;
     }

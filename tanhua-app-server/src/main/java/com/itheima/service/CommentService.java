@@ -1,6 +1,7 @@
 package com.itheima.service;
 
 import cn.hutool.core.collection.CollUtil;
+import com.alibaba.fastjson.JSON;
 import com.itheima.api.CommentApi;
 import com.itheima.api.MovementApi;
 import com.itheima.api.UserInfoApi;
@@ -39,6 +40,8 @@ public class CommentService {
     private RedisTemplate<String,String> redisTemplate;
     @DubboReference
     private VisitorsApi visitorsApi;
+    @Autowired
+    private MqMessageService mqMessageService;
     /**
      * 评论列表
      * @param movementId
@@ -81,6 +84,15 @@ public class CommentService {
         String content = map.get("comment");
         //获取登录者的id
         Long uid = ThreadLocalUtils.get();
+        String value = redisTemplate.opsForValue().get(Constants.USER_FREEZE + uid);
+        if (!org.apache.commons.lang3.StringUtils.isEmpty(value)) {
+            Map redisMap = JSON.parseObject(value, Map.class);
+            String freezingRange = redisMap.get("freezingRange").toString();
+            if ("2".equals(freezingRange)) {
+                throw new BusinessException(ErrorResult.freezeError2());
+            }
+        }
+
         //根据动态id来查询
         Long publishUserId = movementApi.findByMoveId(publishId).getUserId();
         Comment comment = new Comment();
@@ -92,7 +104,8 @@ public class CommentService {
         comment.setPublishUserId(publishUserId);
         //执行保存操作
         commentApi.save(comment);
-
+        //向MQ中发送消息
+        mqMessageService.sendLogMessage(ThreadLocalUtils.get(),"0205","comment",comment.getId().toHexString());
     }
 
     /**
@@ -107,6 +120,8 @@ public class CommentService {
         if (hasComment){
             throw new BusinessException(ErrorResult.likeError());
         }
+        //向MQ中发送消息
+        mqMessageService.sendLogMessage(ThreadLocalUtils.get(),"0203","movement",movementId);
         //调用API保存数据到mongodb
         Comment comment = new Comment();
         comment.setPublishId(new ObjectId(movementId));
@@ -134,6 +149,8 @@ public class CommentService {
         if (!hasComment){
             throw new BusinessException(ErrorResult.disLikeError());
         }
+        //向MQ中发送消息
+        mqMessageService.sendLogMessage(ThreadLocalUtils.get(),"0206","movement",movementId);
         //调用API删除删除数据
         Comment comment = new Comment();
         comment.setPublishId(new ObjectId(movementId));
@@ -159,6 +176,8 @@ public class CommentService {
         if (hasComment){
             throw new BusinessException(ErrorResult.loveError());
         }
+        //向MQ中发送消息
+        mqMessageService.sendLogMessage(ThreadLocalUtils.get(),"0204","movement",movementId);
         //封装对象
         Comment comment = new Comment();
         comment.setPublishId(new ObjectId(movementId));
@@ -186,6 +205,8 @@ public class CommentService {
         if (!hasComment){
             throw new BusinessException(ErrorResult.disloveError());
         }
+        //向MQ中发送消息
+        mqMessageService.sendLogMessage(ThreadLocalUtils.get(),"0207","movement",movementId);
         //创建对象
         Comment comment = new Comment();
         comment.setPublishId(new ObjectId(movementId));

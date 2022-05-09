@@ -16,6 +16,8 @@ import org.springframework.data.mongodb.core.aggregation.AggregationResults;
 import org.springframework.data.mongodb.core.aggregation.TypedAggregation;
 import org.springframework.data.mongodb.core.query.Criteria;
 import org.springframework.data.mongodb.core.query.Query;
+import org.springframework.data.mongodb.core.query.Update;
+import org.springframework.util.ObjectUtils;
 
 import java.util.List;
 
@@ -78,15 +80,75 @@ public class MovementApiImpl implements MovementApi {
         return mongoTemplate.find(query,Movement.class);
     }
 
+    /**
+     * 根据movementId查找
+     * @param movementId
+     * @return
+     */
     @Override
     public Movement findByMoveId(String movementId) {
         Query query = Query.query(Criteria.where("id").is(movementId));
         return mongoTemplate.findOne(query,Movement.class);
     }
 
+    /**
+     * 统计数量
+     * @param userId
+     * @return
+     */
     @Override
     public Integer countByUserId(Long userId) {
         Query query = Query.query(Criteria.where("userId").is(userId));
+        return Math.toIntExact(mongoTemplate.count(query, Movement.class));
+    }
+
+    /**
+     * 根据条件查找动态
+     * @param uid
+     * @param state
+     * @param page
+     * @param pageSize
+     * @return
+     */
+    @Override
+    public List<Movement> findAllMovements(Long uid, Integer state, Integer page, Integer pageSize) {
+        Pageable pageable = PageRequest.of(page-1,pageSize,Sort.by(Sort.Order.desc("created")));
+        Query query = new Query();
+        if (!ObjectUtils.isEmpty(uid)){
+            query.addCriteria(Criteria.where("userId").is(uid)).with(pageable);
+        }
+        if (!ObjectUtils.isEmpty(state)){
+            query.addCriteria(Criteria.where("state").is(state)).with(pageable);
+        }
+        return mongoTemplate.find(query,Movement.class);
+    }
+
+    /**
+     * 审核操作
+     * @param objectId
+     * @param type
+     */
+    @Override
+    public void updateStateById(ObjectId objectId,String type) {
+        Query query = Query.query(Criteria.where("id").in(objectId));
+        Update update = new Update();
+        if ("1".equals(type)){
+            update.set("state",1);
+        }
+        if ("2".equals(type)){
+            update.set("state",2);
+        }
+        mongoTemplate.updateFirst(query,update,Movement.class);
+    }
+
+    /**
+     * 根据state统计数量
+     * @param state
+     * @return
+     */
+    @Override
+    public Integer countByState(Integer state) {
+        Query query = Query.query(Criteria.where("state").is(state));
         return Math.toIntExact(mongoTemplate.count(query, Movement.class));
     }
 }

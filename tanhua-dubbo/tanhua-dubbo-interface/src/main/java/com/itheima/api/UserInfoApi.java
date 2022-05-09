@@ -1,8 +1,7 @@
 package com.itheima.api;
 
+import com.baomidou.mybatisplus.core.metadata.IPage;
 import com.itheima.dto.RecommendUserDto;
-import com.itheima.mongo.UserLike;
-import com.itheima.pojo.User;
 import com.itheima.pojo.UserInfo;
 
 import java.util.List;
@@ -20,5 +19,7 @@ public interface UserInfoApi {
     Map<Long, UserInfo> findByIds(List<Long> friendIds, UserInfo userInfo);
 
     List<UserInfo>  findByGender(String gender);
+
+    IPage<UserInfo> findAll(Integer page, Integer pageSize);
 
 }

@@ -1,5 +1,7 @@
 package com.itheima.service;
 
+import cn.hutool.core.convert.Convert;
+import com.alibaba.fastjson.JSON;
 import com.itheima.api.UserApi;
 import com.itheima.exception.BusinessException;
 import com.itheima.mongo.Constants;
@@ -11,9 +13,9 @@ import com.itheima.template.HuanXinTemplate;
 import com.itheima.template.OssTemplate;
 import com.itheima.utils.JwtUtils;
 import com.itheima.utils.ThreadLocalUtils;
-import io.jsonwebtoken.Claims;
 import org.apache.commons.lang3.StringUtils;
 import org.apache.dubbo.config.annotation.DubboReference;
+import org.springframework.amqp.core.AmqpTemplate;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.data.redis.core.RedisTemplate;
 import org.springframework.http.ResponseEntity;
@@ -48,6 +50,12 @@ public class UserService {
     @Autowired
     private HuanXinTemplate huanXinTemplate;
 
+    @Autowired
+    private AmqpTemplate amqpTemplate;
+
+    @Autowired
+    private MqMessageService mqMessageService;
+
     /**
      * 发送验证码功能
      * @param map
@@ -81,8 +89,10 @@ public class UserService {
         boolean isNew = false;
         //4.查询数据库中是否存在该用户
         User user = userApi.findByPhone(phone);
+        String type = "0101";//登录
         //5.判断是否为空，如果为空的话，则进行封装并添加
         if (ObjectUtils.isEmpty(user)){
+            type = "0102";//注册
             user=new User();
             user.setMobile(phone);
             user.setPassword(DigestUtils.md5DigestAsHex("123456".getBytes()));
@@ -100,6 +110,16 @@ public class UserService {
                 userApi.update(user);
             }
         }
+        String value = redisTemplate.opsForValue().get(Constants.USER_FREEZE + user.getId());
+        if (!StringUtils.isEmpty(value)) {
+            Map redisMap = JSON.parseObject(value, Map.class);
+            String freezingRange = redisMap.get("freezingRange").toString();
+            if ("1".equals(freezingRange)) {
+                throw new BusinessException(ErrorResult.freezeError1());
+            }
+        }
+        //向MQ中发送消息
+        mqMessageService.sendLogMessage(Convert.toLong(user.getId()),type,"user",null);
         //6.获取该用户的token
         Map<String,Object> params = new HashMap<>();
         params.put("id",user.getId());

@@ -14,7 +14,6 @@ import com.itheima.enums.CommentType;
 import com.itheima.exception.BusinessException;
 import com.itheima.mongo.Comment;
 import com.itheima.mongo.Constants;
-import com.itheima.mongo.FocusUser;
 import com.itheima.mongo.Video;
 import com.itheima.pojo.ErrorResult;
 import com.itheima.pojo.UserInfo;
@@ -25,14 +24,12 @@ import com.itheima.vo.VideoVo;
 import org.apache.dubbo.config.annotation.DubboReference;
 import org.bson.types.ObjectId;
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.cache.annotation.CacheEvict;
-import org.springframework.cache.annotation.Cacheable;
 import org.springframework.data.redis.core.RedisTemplate;
 import org.springframework.stereotype.Service;
 import org.springframework.util.ObjectUtils;
 import org.springframework.util.StringUtils;
-import org.springframework.web.context.request.FacesWebRequest;
 import org.springframework.web.multipart.MultipartFile;
+
 import java.io.IOException;
 import java.util.ArrayList;
 import java.util.Arrays;
@@ -63,6 +60,8 @@ public class SmallVideosService {
     private FocusUserApi focusUserApi;
     @Autowired
     private MessageService messageService;
+    @Autowired
+    private MqMessageService mqMessageService;
     /**
      * 发布视频
      * @param videoThumbnail 视频
@@ -89,6 +88,8 @@ public class SmallVideosService {
         video.setText("我是一个小石头");
         //4.调用API保存数据
         String videoId = videoApi.save(video);
+        //向MQ中发送消息
+        mqMessageService.sendLogMessage(ThreadLocalUtils.get(),"0301","video",videoId);
         if (StringUtils.isEmpty(videoId)){
             throw new BusinessException(ErrorResult.error());
         }
@@ -174,6 +175,8 @@ public class SmallVideosService {
         String key = Constants.VIDEOS_RECOMMEND + videoId;
         String typeKey = Constants.VIDEO_LIKE_HASHKEY + ThreadLocalUtils.get();
         redisTemplate.opsForHash().put(key,typeKey,"1");
+        //向MQ中发送消息
+        mqMessageService.sendLogMessage(ThreadLocalUtils.get(),"0302","video",videoId);
         return count;
     }
 
@@ -197,6 +200,8 @@ public class SmallVideosService {
         String key = Constants.VISITORS_USER + videoId;
         String typeKey = Constants.COMMENT_LIKE_HASHKEY + ThreadLocalUtils.get();
         redisTemplate.opsForHash().delete(key,typeKey);
+        //向MQ中发送消息
+        mqMessageService.sendLogMessage(ThreadLocalUtils.get(),"0303","video",videoId);
         return count;
     }
     /**
@@ -234,6 +239,8 @@ public class SmallVideosService {
         String key = Constants.VISITORS_USER + videoId;
         String typeKey = Constants.VIDEO_LIKE_HASHKEY + ThreadLocalUtils.get();
         redisTemplate.opsForHash().put(key,typeKey,"1");
+        //向MQ中发送消息
+        mqMessageService.sendLogMessage(ThreadLocalUtils.get(),"0304","video",videoId);
     }
 
     /**

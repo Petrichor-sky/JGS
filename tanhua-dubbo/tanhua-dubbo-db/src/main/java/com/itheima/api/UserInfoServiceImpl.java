@@ -6,21 +6,16 @@ import cn.hutool.core.util.StrUtil;
 import com.alibaba.cloud.commons.lang.StringUtils;
 import com.baomidou.mybatisplus.core.conditions.query.LambdaQueryWrapper;
 import com.baomidou.mybatisplus.core.conditions.query.QueryWrapper;
+import com.baomidou.mybatisplus.core.metadata.IPage;
+import com.baomidou.mybatisplus.extension.plugins.pagination.Page;
 import com.itheima.dto.RecommendUserDto;
 import com.itheima.mapper.UserInfoMapper;
-import com.itheima.mongo.Friend;
-import com.itheima.mongo.UserLike;
-import com.itheima.pojo.User;
 import com.itheima.pojo.UserInfo;
 import org.apache.dubbo.config.annotation.DubboService;
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.data.mongodb.core.query.Criteria;
-import org.springframework.data.mongodb.core.query.Query;
 
 import java.util.List;
 import java.util.Map;
-
-import static java.awt.SystemColor.info;
 
 @DubboService
 public class UserInfoServiceImpl implements UserInfoApi{
@@ -92,5 +87,19 @@ public class UserInfoServiceImpl implements UserInfoApi{
         LambdaQueryWrapper<UserInfo> queryWrapper = new LambdaQueryWrapper<>();
         queryWrapper.eq(UserInfo::getGender,gender);
         return userInfoMapper.selectList(queryWrapper);
+    }
+
+    /**
+     * 查询所有
+     * @param page
+     * @param pageSize
+     * @return
+     */
+    @Override
+    public IPage<UserInfo> findAll(Integer page, Integer pageSize) {
+        IPage<UserInfo> iPage = new Page<>(page,pageSize);
+        LambdaQueryWrapper<UserInfo> queryWrapper = new LambdaQueryWrapper<>();
+        queryWrapper.orderByDesc(UserInfo::getCreated);
+        return userInfoMapper.selectPage(iPage,queryWrapper);
     }
 }

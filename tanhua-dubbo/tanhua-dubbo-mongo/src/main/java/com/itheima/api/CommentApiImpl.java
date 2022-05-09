@@ -1,8 +1,7 @@
 package com.itheima.api;
 
-import cn.hutool.core.collection.CollUtil;
-import com.itheima.mongo.Comment;
 import com.itheima.enums.CommentType;
+import com.itheima.mongo.Comment;
 import com.itheima.mongo.Movement;
 import com.itheima.mongo.Video;
 import org.apache.dubbo.config.annotation.DubboService;
@@ -213,6 +212,22 @@ public class CommentApiImpl implements CommentApi{
         Pageable pageable = PageRequest.of(page-1,pageSize,Sort.by(Sort.Order.desc("created")));
         Query query = Query.query(Criteria.where("publishUserId").is(userId)
                 .and("commentType").is(commentType.getType()))
+                .with(pageable);
+        return mongoTemplate.find(query,Comment.class);
+    }
+
+    /**
+     * 根据publishId查询对应的评论列表
+     * @param messageID
+     * @param page
+     * @param pageSize
+     * @return
+     */
+    @Override
+    public List<Comment> findCommentsByPublishId(String messageID, Integer page, Integer pageSize) {
+        Pageable pageable = PageRequest.of(page-1,pageSize,Sort.by(Sort.Order.desc("created")));
+        Query query = Query.query(Criteria.where("publishId").is(new ObjectId(messageID))
+                .and("commentType").is(CommentType.COMMENT.getType()))
                 .with(pageable);
         return mongoTemplate.find(query,Comment.class);
     }

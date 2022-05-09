@@ -25,4 +25,5 @@ public interface CommentApi {
 
     List<Comment> findCommentByUserId(Long userId,CommentType commentType,Integer page,Integer pageSize);
 
+    List<Comment> findCommentsByPublishId(String messageID, Integer page, Integer pageSize);
 }

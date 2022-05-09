@@ -4,6 +4,7 @@
     <file url="file://$PROJECT_DIR$/../../SoftWare/apache-maven-3.6.1/maven_repository/org/springframework/boot/spring-boot-starter-parent/2.3.9.RELEASE/src/main/resources" charset="UTF-8" />
     <file url="file://$PROJECT_DIR$/src/main/java" charset="UTF-8" />
     <file url="file://$PROJECT_DIR$/src/main/resources" charset="UTF-8" />
+    <file url="file://$PROJECT_DIR$/tanhua-admin/src/main/java" charset="UTF-8" />
     <file url="file://$PROJECT_DIR$/tanhua-app-server/src/main/java" charset="UTF-8" />
     <file url="file://$PROJECT_DIR$/tanhua-autoconfig/src/main/java" charset="UTF-8" />
     <file url="file://$PROJECT_DIR$/tanhua-commons/src/main/java" charset="UTF-8" />
@@ -14,6 +15,7 @@
     <file url="file://$PROJECT_DIR$/tanhua-dubbo/tanhua-dubbo-mongo/src/main/java" charset="UTF-8" />
     <file url="file://$PROJECT_DIR$/tanhua-file-starter/src/main/java" charset="UTF-8" />
     <file url="file://$PROJECT_DIR$/tanhua-file/src/main/java" charset="UTF-8" />
+    <file url="file://$PROJECT_DIR$/tanhua-gateway/src/main/java" charset="UTF-8" />
     <file url="file://$PROJECT_DIR$/tanhua-model/src/main/java" charset="UTF-8" />
     <file url="PROJECT" charset="UTF-8" />
   </component>

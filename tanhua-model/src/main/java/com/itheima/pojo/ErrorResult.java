@@ -49,5 +49,14 @@ public class ErrorResult {
     public static ErrorResult disloveError() {
         return ErrorResult.builder().errCode("000009").errMessage("用户未喜欢").build();
     }
+    public static ErrorResult freezeError1() {
+        return ErrorResult.builder().errCode("000010").errMessage("您的账号已被冻结登录").build();
+    }
+    public static ErrorResult freezeError2() {
+        return ErrorResult.builder().errCode("000011").errMessage("您的账号已被冻结发言").build();
+    }
+    public static ErrorResult freezeError3() {
+        return ErrorResult.builder().errCode("000012").errMessage("您的账号已被冻结发布动态").build();
+    }
 
 }

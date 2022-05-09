@@ -11,6 +11,8 @@
         <module>tanhua-dubbo</module>
         <module>tanhua-model</module>
         <module>tanhua-file-starter</module>
+        <module>tanhua-admin</module>
+        <module>tanhua-gateway</module>
     </modules>
     <parent>
         <artifactId>spring-boot-starter-parent</artifactId>

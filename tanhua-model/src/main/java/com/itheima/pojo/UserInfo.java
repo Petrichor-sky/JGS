@@ -1,13 +1,11 @@
 package com.itheima.pojo;
 
 import com.baomidou.mybatisplus.annotation.IdType;
+import com.baomidou.mybatisplus.annotation.TableField;
 import com.baomidou.mybatisplus.annotation.TableId;
 import lombok.AllArgsConstructor;
 import lombok.Data;
 import lombok.NoArgsConstructor;
-
-import java.io.Serializable;
-import java.util.Date;
 
 @Data
 @NoArgsConstructor
@@ -32,4 +30,8 @@ public class UserInfo extends BasePojo {
     private Integer marriage; //婚姻状态
     private String tags; //用户标签：多个用逗号分隔
     private String coverPic; // 封面图片
+
+    //不映射此属性
+    @TableField(exist = false)
+    private String userStatus = "1";
 }
