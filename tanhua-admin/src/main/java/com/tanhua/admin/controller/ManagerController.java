@@ -1,9 +1,9 @@
 package com.tanhua.admin.controller;
 
 import com.itheima.pojo.UserInfo;
-import com.itheima.vo.MovementsVo;
-import com.itheima.vo.PageResult;
 import com.tanhua.admin.service.ManagerService;
+import com.itheima.vo.MovementsStateVo;
+import com.itheima.vo.PageResult;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
@@ -93,8 +93,8 @@ public class ManagerController {
      * 动态详情
      */
     @GetMapping("messages/{id}")
-    public ResponseEntity<MovementsVo> findMovement(@PathVariable("id") String movementId){
-        MovementsVo vo = managerService.findMovement(movementId);
+    public ResponseEntity<MovementsStateVo> findMovement(@PathVariable("id") String movementId){
+        MovementsStateVo vo = managerService.findMovement(movementId);
         return ResponseEntity.ok(vo);
     }
 
@@ -115,4 +115,22 @@ public class ManagerController {
         Map<String,String> map = managerService.reject(ids);
         return ResponseEntity.ok(map);
     }
+
+    /**
+     * 动态置顶
+     */
+    @PostMapping("messages/{id}/top")
+    public ResponseEntity<Map<String,String>> top(@PathVariable("id") String movementId){
+        Map<String,String> map = managerService.top(movementId);
+        return ResponseEntity.ok(map);
+    }
+    /**
+     * 取消动态置顶
+     */
+    @PostMapping("messages/{id}/untop")
+    public ResponseEntity<Map<String,String>> untop(@PathVariable("id") String movementId){
+        Map<String,String> map = managerService.untop(movementId);
+        return ResponseEntity.ok(map);
+    }
+
 }

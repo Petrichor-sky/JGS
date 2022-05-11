@@ -1,5 +1,7 @@
 package com.itheima.api;
 
+import com.itheima.mongo.UserLocation;
+
 import java.util.List;
 
 public interface UserLocationApi {
@@ -7,4 +9,6 @@ public interface UserLocationApi {
     Boolean updateLocation(Long userId,Double longitude,Double latitude,String address);
     //根据位置搜索附近的人
     List<Long> queryNearUser(Long userId,Double metre);
+
+    UserLocation findByUserId(Long aLong);
 }

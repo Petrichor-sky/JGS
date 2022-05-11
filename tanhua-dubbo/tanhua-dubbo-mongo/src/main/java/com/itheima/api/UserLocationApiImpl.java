@@ -6,7 +6,6 @@ import org.apache.dubbo.config.annotation.DubboService;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.data.geo.Circle;
 import org.springframework.data.geo.Distance;
-import org.springframework.data.geo.Metric;
 import org.springframework.data.geo.Metrics;
 import org.springframework.data.mongodb.core.MongoTemplate;
 import org.springframework.data.mongodb.core.geo.GeoJsonPoint;
@@ -83,5 +82,16 @@ public class UserLocationApiImpl implements UserLocationApi{
         Query locationQuery = Query.query(Criteria.where("location").withinSphere(circle));
         List<UserLocation> list = mongoTemplate.find(locationQuery, UserLocation.class);
         return CollUtil.getFieldValues(list,"userId",Long.class);
+    }
+
+    /**
+     * 根据用户id查询对应的地理位置
+     * @param userId
+     * @return
+     */
+    @Override
+    public UserLocation findByUserId(Long userId) {
+        Query query = Query.query(Criteria.where("userId").is(userId));
+        return mongoTemplate.findOne(query,UserLocation.class);
     }
 }

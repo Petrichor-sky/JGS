@@ -1,5 +1,6 @@
 package com.tanhua.admin.service;
 
+import cn.hutool.core.date.DateField;
 import cn.hutool.core.date.DateUtil;
 import com.itheima.vo.AnalysisSummaryVo;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -23,16 +24,13 @@ public class DashboardService {
      * @return
      */
     public Map<String,List<Map<String,Object>>> getCount(Long sd,Long ed,String type){
-        /*//开始时间
         Date startDate = new Date(sd);
-        //结束时间
         Date endDate = new Date(ed);
-        return analysisService.CountByTypeAndTime(type,startDate,endDate);*/
-        //return analysisService.countByTypeAndTime(type,startDate,endDate);
-        String start = new SimpleDateFormat("yyyy-MM-dd").format(new Date(sd));
-        String end = new SimpleDateFormat("yyyy-MM-dd").format(new Date(ed));
-
-       return analysisService.countByTimeAndType(type,start,end);
+        String start = new SimpleDateFormat("yyyy-MM-dd").format(startDate);
+        String end = new SimpleDateFormat("yyyy-MM-dd").format(endDate);
+        String lastYearStart = new SimpleDateFormat("yyyy-MM-dd").format(DateUtil.offset(startDate, DateField.YEAR, -1));
+        String lastYearEnd = new SimpleDateFormat("yyyy-MM-dd").format(DateUtil.offset(endDate, DateField.YEAR, -1));
+       return analysisService.countByTimeAndType(type,start,end,lastYearStart,lastYearEnd);
 
     }
 

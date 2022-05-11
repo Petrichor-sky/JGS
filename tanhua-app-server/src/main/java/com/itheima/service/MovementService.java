@@ -5,6 +5,7 @@ import com.alibaba.fastjson.JSON;
 import com.itheima.api.CommentApi;
 import com.itheima.api.MovementApi;
 import com.itheima.api.UserInfoApi;
+import com.itheima.api.UserLocationApi;
 import com.itheima.enums.CommentType;
 import com.itheima.exception.BusinessException;
 import com.itheima.mongo.Constants;
@@ -46,6 +47,8 @@ public class MovementService {
     private CommentApi commentApi;
     @Autowired
     private MqMessageService mqMessageService;
+    @Autowired
+    private UserLocationApi userLocationApi;
     /**
      * 发布动态
      * @param movement
@@ -187,11 +190,14 @@ public class MovementService {
                 list = movementApi.findMoveByPids(pids);
             }
         }
+        //根据当前用户id查询，对应的地理位置
+        //UserLocation user1 = userLocationApi.findByUserId(ThreadLocalUtils.get());
         //遍历
         for (Movement movement : list) {
             //获取对应的userId
             Long userId = movement.getUserId();
             UserInfo userInfo = userInfoApi.findById(userId);
+            //UserLocation user2 = userLocationApi.findByUserId(userInfo.getId());
             MovementsVo movementsVo = MovementsVo.init(userInfo, movement);
             movementsVo.setHasLiked(commentApi.hasComment(movement.getId().toHexString(),ThreadLocalUtils.get(), CommentType.LIKE) ? 1 : 0);
             movementsVo.setCommentCount(commentApi.countByPublishId(movement.getId().toHexString()));

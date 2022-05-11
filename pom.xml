@@ -13,6 +13,7 @@
         <module>tanhua-file-starter</module>
         <module>tanhua-admin</module>
         <module>tanhua-gateway</module>
+        <module>tanhua-recommend</module>
     </modules>
     <parent>
         <artifactId>spring-boot-starter-parent</artifactId>

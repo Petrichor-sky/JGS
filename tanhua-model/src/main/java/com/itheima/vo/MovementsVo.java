@@ -1,15 +1,20 @@
 package com.itheima.vo;
 
 import com.itheima.mongo.Movement;
+import com.itheima.mongo.UserLocation;
 import com.itheima.pojo.UserInfo;
+import com.itheima.utils.RelativeDateFormat;
 import lombok.AllArgsConstructor;
 import lombok.Data;
 import lombok.NoArgsConstructor;
+import org.gavaghan.geodesy.Ellipsoid;
+import org.gavaghan.geodesy.GeodeticCalculator;
+import org.gavaghan.geodesy.GeodeticCurve;
+import org.gavaghan.geodesy.GlobalCoordinates;
 import org.springframework.beans.BeanUtils;
 import org.springframework.util.StringUtils;
 
 import java.io.Serializable;
-import java.text.SimpleDateFormat;
 import java.util.Date;
 
 @Data
@@ -35,7 +40,7 @@ public class MovementsVo  implements Serializable {
     private Integer commentCount; //评论数
     private Integer loveCount; //喜欢数
 
-
+    private Integer topState = 1;//0表示未置顶
     private Integer hasLiked; //是否点赞（1是，0否）
     private Integer hasLoved; //是否喜欢（1是，0否）
 
@@ -55,10 +60,26 @@ public class MovementsVo  implements Serializable {
         //距离
         vo.setDistance("500米");
         Date date = new Date(item.getCreated());
-        vo.setCreateDate(new SimpleDateFormat("yyyy-MM-dd hh:mm:ss").format(date));
+        vo.setCreateDate(RelativeDateFormat.format(date));
         //设置是否点赞(后续处理)
         vo.setHasLoved(0);
         vo.setHasLiked(0);
         return vo;
+    }
+
+    public static String getDistance(UserLocation user1, UserLocation user2){
+        GlobalCoordinates source = new GlobalCoordinates(user1.getLocation().getX(),user2.getLocation().getY());
+        GlobalCoordinates target = new GlobalCoordinates(user1.getLocation().getX(),user2.getLocation().getY());
+        double meter = getDistanceMeter(source, target, Ellipsoid.WGS84);
+        long round = Math.round(meter);
+        if (round < 1000 || round >= 0){
+            return round + "米";
+        }else {
+            return Math.round(meter / 1000) + "千米";
+        }
+    }
+    public static double getDistanceMeter(GlobalCoordinates gpsFrom,GlobalCoordinates gpsTo,Ellipsoid ellipsoid){
+        GeodeticCurve geodeticCurve = new GeodeticCalculator().calculateGeodeticCurve(ellipsoid,gpsFrom,gpsTo);
+        return geodeticCurve.getEllipsoidalDistance();
     }
 }

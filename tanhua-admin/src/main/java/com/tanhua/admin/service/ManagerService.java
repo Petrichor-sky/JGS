@@ -139,6 +139,7 @@ public class ManagerService {
         result.setPagesize(pageSize);
         result.setPage(page);
         result.setItems(vos);
+        result.setPages(1);
         result.setCounts(commentApi.countByPublishId(messageID));
         return result;
 
@@ -229,13 +230,13 @@ public class ManagerService {
      * @param movementId
      * @return
      */
-    public MovementsVo findMovement(String movementId) {
+    public MovementsStateVo findMovement(String movementId) {
         //根据动态id，查询对应的动态
         Movement movement = movementApi.findByMoveId(movementId);
         if (!ObjectUtils.isEmpty(movement)){
             //获取用户对应的信息
             UserInfo userInfo = userInfoApi.findById(movement.getUserId());
-            return  MovementsVo.init(userInfo,movement);
+            return  MovementsStateVo.init(userInfo,movement);
         }
         return null;
     }
@@ -270,6 +271,25 @@ public class ManagerService {
         }
         Map<String,String> map = new HashMap<>();
         map.put("message","拒绝成功");
+        return map;
+    }
+
+    /**
+     * 动态置顶
+     * @param movementId
+     * @return
+     */
+    public Map<String, String> top(String movementId) {
+        movementApi.updateTopState(movementId);
+        Map<String,String> map = new HashMap<>();
+        map.put("message","置顶成功");
+        return map;
+    }
+
+    public Map<String, String> untop(String movementId) {
+        movementApi.downTopState(movementId);
+        Map<String,String> map = new HashMap<>();
+        map.put("message","取消置顶成功");
         return map;
     }
 }

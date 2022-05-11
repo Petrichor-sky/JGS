@@ -1,7 +1,7 @@
 package com.tanhua.admin.controller;
 
-import com.itheima.vo.AdminVo;
 import com.tanhua.admin.service.SystemService;
+import com.itheima.vo.AdminVo;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;

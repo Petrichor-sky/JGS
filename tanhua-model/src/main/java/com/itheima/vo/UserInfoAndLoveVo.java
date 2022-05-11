@@ -2,13 +2,9 @@ package com.itheima.vo;
 
 import cn.hutool.core.util.RandomUtil;
 import com.itheima.mongo.UserLike;
-import com.itheima.mongo.Visitors;
-import com.itheima.pojo.Announcement;
 import com.itheima.pojo.UserInfo;
 import lombok.Data;
 import org.springframework.beans.BeanUtils;
-
-import java.text.SimpleDateFormat;
 
 @Data
 public class UserInfoAndLoveVo {
@@ -27,6 +23,7 @@ public class UserInfoAndLoveVo {
 
     public static UserInfoAndLoveVo init(UserInfo userInfo, UserLike userLike) {
         UserInfoAndLoveVo vo = new UserInfoAndLoveVo();
+        vo.setAge(userInfo.getAge().toString());
         BeanUtils.copyProperties(userInfo,vo);
         vo.setMatchRate(RandomUtil.randomInt(60,90));
         vo.setAlreadyLove(userLike.getIsLike());

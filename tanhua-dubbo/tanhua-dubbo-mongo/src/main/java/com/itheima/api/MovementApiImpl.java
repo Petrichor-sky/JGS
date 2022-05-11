@@ -1,8 +1,6 @@
 package com.itheima.api;
 
-import cn.hutool.core.collection.CollUtil;
 import com.itheima.mongo.Movement;
-import com.itheima.mongo.MovementTimeLine;
 import com.itheima.utils.IdWorker;
 import org.apache.dubbo.config.annotation.DubboService;
 import org.bson.types.ObjectId;
@@ -52,7 +50,7 @@ public class MovementApiImpl implements MovementApi {
         return mongoTemplate.find(query, Movement.class);
     }
 
-    @Override
+/*    @Override
     public List<Movement> findByFriendId(Long uid, Integer page, Integer pageSize) {
         //查询好友时间线表
         Pageable pageable = PageRequest.of(page - 1, pageSize, Sort.by(Sort.Order.desc("created")));
@@ -63,7 +61,7 @@ public class MovementApiImpl implements MovementApi {
         //根据动态的id查询动态的详情
         Query movementQuery = Query.query(Criteria.where("id").in(movementIds));
         return mongoTemplate.find(movementQuery,Movement.class);
-    }
+    }*/
 
     @Override
     public List<Movement> randomMovements(Integer pageSize) {
@@ -112,7 +110,9 @@ public class MovementApiImpl implements MovementApi {
      */
     @Override
     public List<Movement> findAllMovements(Long uid, Integer state, Integer page, Integer pageSize) {
-        Pageable pageable = PageRequest.of(page-1,pageSize,Sort.by(Sort.Order.desc("created")));
+        Pageable pageable = PageRequest.of(page-1,pageSize,
+                Sort.by(Sort.Order.desc("topState"))
+                        .and(Sort.by(Sort.Order.desc("created"))));
         Query query = new Query();
         if (!ObjectUtils.isEmpty(uid)){
             query.addCriteria(Criteria.where("userId").is(uid)).with(pageable);
@@ -150,5 +150,27 @@ public class MovementApiImpl implements MovementApi {
     public Integer countByState(Integer state) {
         Query query = Query.query(Criteria.where("state").is(state));
         return Math.toIntExact(mongoTemplate.count(query, Movement.class));
+    }
+
+    /**
+     * 动态置顶
+     * @param movementId
+     */
+    @Override
+    public void updateTopState(String movementId) {
+        Query query = Query.query(Criteria.where("id").is(new ObjectId(movementId)));
+        Update update = Update.update("topState",2);
+        mongoTemplate.updateFirst(query,update,Movement.class);
+    }
+
+    /**
+     * 取消动态置顶
+     * @param movementId
+     */
+    @Override
+    public void downTopState(String movementId) {
+        Query query = Query.query(Criteria.where("id").is(new ObjectId(movementId)));
+        Update update = Update.update("topState",1);
+        mongoTemplate.updateFirst(query,update,Movement.class);
     }
 }

@@ -31,6 +31,7 @@ public class Movement implements java.io.Serializable {
     private Integer likeCount = 0; //点赞数
     private Integer commentCount = 0; //评论数
     private Integer loveCount = 0; //喜欢数
+    private Integer topState = 1;//0表示未置顶
 
     //根据评论类型，获取对应的互动数量
     public Integer statisCount(Integer commentType) {

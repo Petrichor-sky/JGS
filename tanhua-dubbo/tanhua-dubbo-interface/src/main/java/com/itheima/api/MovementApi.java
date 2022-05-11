@@ -12,8 +12,6 @@ public interface MovementApi {
 
     List<Movement> findByMoveIds(List<Object> movementIds);
 
-    List<Movement> findByFriendId(Long uid, Integer page, Integer pageSize);
-
     List<Movement> randomMovements(Integer pageSize);
 
     List<Movement> findMoveByPids(List<Long> pids);
@@ -27,4 +25,8 @@ public interface MovementApi {
     void updateStateById(ObjectId objectId,String type);
 
     Integer countByState(Integer state);
+
+    void updateTopState(String movementId);
+
+    void downTopState(String movementId);
 }

@@ -21,6 +21,8 @@ public class MovementsStateVo implements Serializable {
     private Integer likeCount; //点赞数
     private Integer commentCount; //评论数
     private String[] imageContent; //图片动态
+    private Integer topState = 1;//0表示未置顶
+
 
     public static MovementsStateVo init(UserInfo userInfo, Movement item) {
         MovementsStateVo vo = new MovementsStateVo();

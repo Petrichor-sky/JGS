@@ -1,5 +1,7 @@
 package com.itheima.mongo;
 
+import com.fasterxml.jackson.databind.annotation.JsonDeserialize;
+import com.itheima.dto.GeoJsonDeserializer;
 import lombok.AllArgsConstructor;
 import lombok.Data;
 import lombok.NoArgsConstructor;
@@ -23,6 +25,7 @@ public class UserLocation{
     private ObjectId id;
     @Indexed
     private Long userId; //用户id
+    @JsonDeserialize(using = GeoJsonDeserializer.class)
     private GeoJsonPoint location; //x:经度 y:纬度
     private String address; //位置描述
     private Long created; //创建时间
