@@ -1,17 +1,16 @@
 package com.itheima.service;
 
 import com.itheima.api.*;
-import com.itheima.chuanyin.SoulPaper;
-import com.itheima.chuanyin.SoulReport;
+import com.itheima.chuanyin.*;
 import com.itheima.utils.ThreadLocalUtils;
 import com.itheima.vo.OptionsVo;
 import com.itheima.vo.PaperListVo;
 import com.itheima.vo.QuestionsVo;
 import org.apache.dubbo.config.annotation.DubboReference;
 import org.springframework.stereotype.Service;
+import org.springframework.util.ObjectUtils;
 
-import java.util.ArrayList;
-import java.util.List;
+import java.util.*;
 
 @Service
 public class TestSoulService {
@@ -124,5 +123,57 @@ public class TestSoulService {
         }
         //将问题集合添加到问卷属性中
         paperListVo.setQuestions(questionList);
+    }
+
+    /**
+     * 提交问卷
+     * @param map
+     * @return
+     */
+    public String submitTestSoul(Map<String, List<Answers>> map) {
+        //获取当前用户对象
+        Long userId = ThreadLocalUtils.get();
+        //设置初始化分数
+        Long score = 0L;
+        Long questionId = 0L;
+        Collection<List<Answers>> answerList = map.values();
+        for (List<Answers> answers : answerList) {
+            for (Answers answer : answers) {
+                //拿到问题的ID
+                questionId = Long.valueOf(answer.getQuestionId());
+                //拿到选项的ID
+                String optionId = answer.getOptionId();
+                //根据条件查询对应的信息
+                SoulOptions soulOptions = soulOptionsApi.findByOptionId(optionId);
+                //计算总分
+                score += soulOptions.getScore();
+
+            }
+        }
+        //查询对应的试卷ID
+        SoulQuestion question = soulQuestionApi.findById(questionId);
+        //查询该用户是否存在该问卷报告
+        SoulReport soulReport = soulReportApi.findByIdAndUserId(question.getPaperId(),userId);
+        //判断问卷报告是否为空
+        if (!ObjectUtils.isEmpty(soulReport)){
+            //如果不为空的话，执行修改操作
+            soulReport.setPaperId(Long.valueOf(question.getPaperId()));
+            soulReport.setScore(score);
+            soulReport.setUpdated(new Date(System.currentTimeMillis()));
+            //执行修改操作
+            soulReportApi.update(soulReport);
+            return soulReport.getId().toString();
+        }else {
+            //如果为空的话，执行添加操作
+            soulReport = new SoulReport();
+            soulReport.setUserId(userId);
+            soulReport.setPaperId(Long.valueOf(question.getPaperId()));
+            soulReport.setScore(score);
+            soulReport.setUpdated(new Date(System.currentTimeMillis()));
+            soulReport.setCreated(new Date(System.currentTimeMillis()));
+            //执行添加操作
+            return soulReportApi.save(soulReport);
+        }
+
     }
 }

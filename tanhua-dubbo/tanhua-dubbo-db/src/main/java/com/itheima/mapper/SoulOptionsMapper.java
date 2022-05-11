@@ -17,4 +17,7 @@ public interface SoulOptionsMapper extends BaseMapper<SoulOptions> {
 
     @Select("SELECT id,`option` FROM tb_soul_question_option WHERE question_id = #{id}")
     List<OptionsVo> findByQuestionId(@Param("id") String id);
+
+    @Select("SELECT * FROM tb_soul_question_option WHERE id = #{id}")
+    SoulOptions findByOptionId(@Param("id") String optionId);
 }

@@ -16,4 +16,9 @@ public class SoulQuestionServiceImpl implements SoulQuestionApi{
     public List<QuestionsVo> findByPaperId(String paperId) {
         return questionMapper.findByPaperId(paperId);
     }
+
+    @Override
+    public SoulQuestion findById(Long questionId) {
+        return questionMapper.selectById(questionId);
+    }
 }

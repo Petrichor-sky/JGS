@@ -18,4 +18,23 @@ public class SoulReportServiceImpl implements SoulReportApi{
         qw.eq(SoulReport::getUserId,userId);
         return reportMapper.selectList(qw);
     }
+
+    @Override
+    public SoulReport findByIdAndUserId(String paperId, Long userId) {
+        LambdaQueryWrapper<SoulReport> qw = new LambdaQueryWrapper<>();
+        qw.eq(SoulReport::getId,paperId);
+        qw.eq(SoulReport::getUserId,userId);
+        return reportMapper.selectOne(qw);
+    }
+
+    @Override
+    public void update(SoulReport soulReport) {
+        reportMapper.updateById(soulReport);
+    }
+
+    @Override
+    public String save(SoulReport soulReport) {
+        reportMapper.insert(soulReport);
+        return soulReport.getId().toString();
+    }
 }
