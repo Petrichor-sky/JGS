@@ -12,4 +12,8 @@ public interface SoulReportApi {
     void update(SoulReport soulReport);
 
     String save(SoulReport soulReport);
+
+    SoulReport findById(String reportId);
+
+    List<SoulReport> findByScore(Long score,SoulReport soulReport);
 }

@@ -1,8 +1,12 @@
 package com.itheima.service;
 
+import cn.hutool.core.collection.CollUtil;
+import cn.hutool.core.convert.Convert;
 import com.itheima.api.*;
 import com.itheima.chuanyin.*;
+import com.itheima.pojo.UserInfo;
 import com.itheima.utils.ThreadLocalUtils;
+import com.itheima.vo.ConclusionVo;
 import com.itheima.vo.OptionsVo;
 import com.itheima.vo.PaperListVo;
 import com.itheima.vo.QuestionsVo;
@@ -26,6 +30,10 @@ public class TestSoulService {
     private SoulOptionsApi soulOptionsApi;
     @DubboReference
     private UserInfoApi userInfoApi;
+    @DubboReference
+    private SoulResultApi soulResultApi;
+    @DubboReference
+    private SoulDimensionsApi soulDimensionsApi;
 
 
     /**
@@ -175,5 +183,71 @@ public class TestSoulService {
             return soulReportApi.save(soulReport);
         }
 
+    }
+
+    /**
+     * 查看报告
+     * @param reportId
+     * @return
+     */
+    public ConclusionVo getResult(String reportId) {
+        //校验
+        Long userId = ThreadLocalUtils.get();
+        //创建鉴定结果对象
+        ConclusionVo vo = new ConclusionVo();
+        //根据reportId来获取对应的数据
+        SoulReport soulReport = soulReportApi.findById(reportId);
+        //判断report是否为空
+        if (ObjectUtils.isEmpty(soulReport)){
+            return null;
+        }
+        //如果不为空的话，获取该用户的得分表
+        Long score = soulReport.getScore();
+        //再到report表中查询和自己评分相近的人，且不是自己，并且答的同一份问卷
+        List<SoulReport> reportList = soulReportApi.findByScore(score,soulReport);
+        if (CollUtil.isEmpty(reportList)){
+            return null;
+        }
+        //获取对应的userIds
+        List<Long> userIds = CollUtil.getFieldValues(reportList, "userId", Long.class);
+        //调用userInfoApi查询对应的用户信息
+        Map<Long, UserInfo> map = userInfoApi.findByIds(userIds, null);
+        //遍历
+        List<SoulSimilarYou> similarYouList = new ArrayList<>();
+        for (SoulReport report : reportList) {
+            UserInfo userInfo = map.get(report.getId());
+            if (!ObjectUtils.isEmpty(userInfo)){
+                //创建对象并赋值
+                SoulSimilarYou similarYou = new SoulSimilarYou();
+                similarYou.setId(Convert.toInt(report.getUserId()));
+                similarYou.setAvatar(userInfo.getAvatar());
+                similarYouList.add(similarYou);
+            }
+        }
+        String scoreStr = "";
+        //根据结果的进行鉴定，根据不同的得分判断不同的类型
+        if (score < 21){
+            //如果满足，则为猫头鹰类型
+            scoreStr = "0,20";
+        }else if (score < 40  &&  score >= 21){
+            //如果满足，则为白兔类型
+            scoreStr = "21,40";
+        }else if (score < 55 && score >= 41){
+            //如果满足，则为狐狸类型
+            scoreStr = "41,55";
+        }else if (score > 56){
+            //如果满足，则为狮子类型
+            scoreStr = "56,100";
+        }else {
+            return null;
+        }
+        //获取基础信息
+        vo = soulResultApi.findByPaperIdAndScore(soulReport.getPaperId(),scoreStr);
+        //获取维度集合
+        List<SoulDimensions> dimensionsList = soulDimensionsApi.findByScore(scoreStr);
+        //添加到鉴定结果里面
+        vo.setDimensions(dimensionsList);
+        vo.setSimilarYou(similarYouList);
+        return vo;
     }
 }
