@@ -2,13 +2,11 @@ package com.itheima.service;
 
 import cn.hutool.core.collection.CollUtil;
 import cn.hutool.core.convert.Convert;
-import cn.hutool.core.util.RandomUtil;
 import cn.hutool.core.util.StrUtil;
 import com.itheima.api.UserApi;
 import com.itheima.api.UserInfoApi;
 import com.itheima.api.UserLikeApi;
 import com.itheima.api.VisitorsApi;
-import com.itheima.mongo.Constants;
 import com.itheima.mongo.UserLike;
 import com.itheima.mongo.Visitors;
 import com.itheima.pojo.Count;
@@ -86,8 +84,7 @@ public class UsersService {
         //构建返回对象
         List<UserInfoAndLoveVo> vos = new ArrayList<>();
         //创建空集合
-        List<UserLike> userLikeList = null;
-        List<Long> userIds = null;
+        List<UserLike> userLikeList = new ArrayList<>();
         //构建返回对象
         PageResult result = new PageResult();
         result.setPage(page);
@@ -98,7 +95,7 @@ public class UsersService {
             if (userLikeList.isEmpty()){
                 return result;
             }
-            userIds = CollUtil.getFieldValues(userLikeList, "likeUserId", Long.class);
+            List<Long> userIds = CollUtil.getFieldValues(userLikeList, "likeUserId", Long.class);
             //根据likeUserId获取对应的用户信息
             Map<Long, UserInfo> map = userInfoApi.findByIds(userIds, userInfo);
             //遍历
@@ -116,7 +113,7 @@ public class UsersService {
             if (userLikeList.isEmpty()){
                 return result;
             }
-            userIds = CollUtil.getFieldValues(userLikeList, "userId", Long.class);
+            List<Long> userIds = CollUtil.getFieldValues(userLikeList, "userId", Long.class);
             //根据likeUserId获取对应的用户信息
             Map<Long, UserInfo> map = userInfoApi.findByIds(userIds, userInfo);
             //遍历
@@ -137,7 +134,7 @@ public class UsersService {
             if (visitorsList.isEmpty()){
                 return result;
             }
-            userIds = CollUtil.getFieldValues(visitorsList, "visitorUserId", Long.class);
+            List<Long> userIds = CollUtil.getFieldValues(visitorsList, "visitorUserId", Long.class);
             //根据likeUserId获取对应的用户信息
             Map<Long, UserInfo> map = userInfoApi.findByIds(userIds, userInfo);
             for (Visitors visitors : visitorsList) {

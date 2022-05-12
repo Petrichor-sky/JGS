@@ -1,7 +1,6 @@
 package com.itheima.controller;
 
 import com.itheima.dto.RecommendUserDto;
-import com.itheima.pojo.Question;
 import com.itheima.service.TanHuaService;
 import com.itheima.vo.NearUserVo;
 import com.itheima.vo.PageResult;
@@ -80,14 +79,13 @@ public class TanHuaController {
     public ResponseEntity love(@PathVariable("id") Long likeUserId){
         tanHuaService.love(likeUserId);
         return ResponseEntity.ok(null);
-
     }
 
     /**
      * 不喜欢
      */
     @GetMapping("/{id}/unlove")
-    public ResponseEntity disLove(@PathVariable("id") Long likeUserId){
+    public ResponseEntity disLove(@PathVariable("id")  Long likeUserId){
         tanHuaService.disLove(likeUserId);
         return ResponseEntity.ok(null);
 

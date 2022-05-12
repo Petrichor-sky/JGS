@@ -56,6 +56,7 @@ public class CommentService {
         result.setPage(page);
         result.setPagesize(pageSize);
         if (CollUtil.isEmpty(commentList)){
+            result.setCounts(0);
             return result;
         }
         List<CommentVo> commentVoList = new ArrayList<>();

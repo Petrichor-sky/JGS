@@ -34,6 +34,7 @@ public class DateTest {
 
 
         String start = new SimpleDateFormat("yyyy-MM-dd").format(DateUtil.beginOfYear(new Date()));
+        System.out.println(start);
         //String ed = "2021-05-05";
         //String sd = "2020-05-05";
         //System.out.println(sd.compareTo(ed));

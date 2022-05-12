@@ -18,7 +18,7 @@ public class Constants {
     //推荐视频
     public static final String VIDEOS_RECOMMEND = "VIDEOS_RECOMMEND_";
 
-    public static final String SOUND_VIDEOS = "SOUND_VIDEOS";
+    public static final String SOUND_VOICE = "SOUND_VOICE";
 
 	//圈子互动KEY
 	public static final String MOVEMENTS_INTERACT_KEY = "MOVEMENTS_INTERACT_";

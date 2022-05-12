@@ -13,7 +13,7 @@ public class UserInfoAndLoveVo {
     private String avatar; //用户头像
     private String nickname; //昵称
     private String gender; //性别
-    private String age; //年龄
+    private Integer age; //年龄
     private String city; //城市
     private String education; //学历
     private Integer marriage; //婚姻状态
@@ -23,7 +23,6 @@ public class UserInfoAndLoveVo {
 
     public static UserInfoAndLoveVo init(UserInfo userInfo, UserLike userLike) {
         UserInfoAndLoveVo vo = new UserInfoAndLoveVo();
-        vo.setAge(userInfo.getAge().toString());
         BeanUtils.copyProperties(userInfo,vo);
         vo.setMatchRate(RandomUtil.randomInt(60,90));
         vo.setAlreadyLove(userLike.getIsLike());

@@ -3,6 +3,7 @@ package com.itheima;
 import com.github.tobato.fastdfs.domain.conn.FdfsWebServer;
 import com.github.tobato.fastdfs.domain.fdfs.StorePath;
 import com.github.tobato.fastdfs.service.FastFileStorageClient;
+import org.bson.types.ObjectId;
 import org.junit.Test;
 import org.junit.runner.RunWith;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -40,6 +41,10 @@ public class FastDFSTest {
         System.out.println(fullPath);  //a/b/abc.jpg;
         String url = webServer.getWebServerUrl() + fullPath;
         System.out.println(url);
+    }
+    @Test
+    public void test(){
+        System.out.println(new ObjectId());
     }
 
 }

@@ -1,7 +1,7 @@
 package com.itheima.controller;
 
 import com.itheima.service.PeachblossomService;
-import com.itheima.vo.SoundVo;
+import com.itheima.vo.VoiceVo;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.GetMapping;
@@ -19,14 +19,26 @@ public class PeachblossomController {
     @Autowired
     private PeachblossomService peachblossomService;
 
+    /**
+     * 发送语音
+     * @param soundFile
+     * @return
+     * @throws IOException
+     */
     @PostMapping
     public ResponseEntity savePeachblossom(MultipartFile soundFile) throws IOException {
         peachblossomService.savePeachblossom(soundFile);
         return ResponseEntity.ok(null);
     }
+
+    /**
+     * 接收语音
+     * @return
+     * @throws IOException
+     */
     @GetMapping
-    public ResponseEntity<SoundVo> getPeachblossom() throws IOException {
-        SoundVo soundVo = peachblossomService.getPeachblossom();
-        return ResponseEntity.ok(soundVo);
+    public ResponseEntity<VoiceVo> getPeachblossom() throws IOException {
+        VoiceVo voiceVo = peachblossomService.getPeachblossom();
+        return ResponseEntity.ok(voiceVo);
     }
 }

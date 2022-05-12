@@ -11,12 +11,14 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.context.properties.EnableConfigurationProperties;
 import org.springframework.context.annotation.Import;
 import org.springframework.util.StringUtils;
+import org.springframework.web.multipart.MultipartFile;
 
 import java.io.ByteArrayOutputStream;
 import java.io.IOException;
 import java.io.InputStream;
 import java.text.SimpleDateFormat;
 import java.util.Date;
+import java.util.UUID;
 
 @Slf4j
 @EnableConfigurationProperties(MinIOConfigProperties.class)
@@ -158,5 +160,32 @@ public class MinIOFileStorageService implements FileStorageService {
             byteArrayOutputStream.write(buff, 0, rc);
         }
         return byteArrayOutputStream.toByteArray();
+    }
+
+    /**
+     * 文件上传
+     *
+     * @param file 文件
+     * @return Boolean
+     */
+    public String upload(MultipartFile file) {
+        String originalFilename = file.getOriginalFilename();
+        if (!StringUtils.hasText(originalFilename)) {
+            throw new RuntimeException();
+        }
+        String fileName = UUID.randomUUID() + originalFilename.substring(originalFilename.lastIndexOf("."));
+        SimpleDateFormat simpleDateFormat = new SimpleDateFormat("yyyy-MM/dd");
+        String format = simpleDateFormat.format(new Date());
+        String objectName = format + "/" + fileName;
+        try {
+            PutObjectArgs objectArgs = PutObjectArgs.builder().bucket(minIOConfigProperties.getBucket()).object(objectName)
+                    .stream(file.getInputStream(), file.getSize(), -1).contentType(file.getContentType()).build();
+            //文件名称相同会覆盖
+            minioClient.putObject(objectArgs);
+        } catch (Exception e) {
+            e.printStackTrace();
+            return null;
+        }
+        return minIOConfigProperties.getReadPath() + "/" + minIOConfigProperties.getBucket() + "/" + objectName;
     }
 }

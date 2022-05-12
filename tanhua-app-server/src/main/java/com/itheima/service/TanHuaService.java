@@ -4,7 +4,6 @@ import cn.hutool.core.collection.CollUtil;
 import cn.hutool.core.convert.Convert;
 import cn.hutool.core.util.RandomUtil;
 import com.alibaba.fastjson.JSON;
-import com.easemob.im.server.api.message.MessageApi;
 import com.itheima.api.*;
 import com.itheima.dto.RecommendUserDto;
 import com.itheima.exception.BusinessException;
@@ -47,7 +46,7 @@ public class TanHuaService {
     @DubboReference
     private UserLikeApi userLikeApi;
     @Autowired
-    private RedisTemplate<String,String> redisTemplate;
+    private RedisTemplate<String, String> redisTemplate;
     @Autowired
     private MessageService messageService;
     @DubboReference
@@ -63,6 +62,7 @@ public class TanHuaService {
 
     /**
      * 查询今日最佳
+     *
      * @return
      */
     public TodayBest todayBest() {
@@ -71,7 +71,7 @@ public class TanHuaService {
         //1.根据userId来获取当前用户缘分值最高的用户
         RecommendUser recommendUser = recommendUserService.findRecommendUserServiceByUserId(id);
         //如果没有分配今日佳人，则默认分配一个
-        if (ObjectUtils.isEmpty(recommendUser)){
+        if (ObjectUtils.isEmpty(recommendUser)) {
             recommendUser = new RecommendUser();
             recommendUser.setUserId(userId);
             recommendUser.setScore(88D);
@@ -86,6 +86,7 @@ public class TanHuaService {
 
     /**
      * 推荐朋友
+     *
      * @param recommendUserDto
      * @return
      */
@@ -93,7 +94,7 @@ public class TanHuaService {
         //1.获取用户id
         Long id = ThreadLocalUtils.get();
         //2.调用分页查询数据列表
-        List<RecommendUser> recommendUserList = recommendUserApi.findByUserId(id,recommendUserDto.getPage(),recommendUserDto.getPagesize());
+        List<RecommendUser> recommendUserList = recommendUserApi.findByUserId(id, recommendUserDto.getPage(), recommendUserDto.getPagesize());
         //3.创建集合
         List<TodayBest> list = new ArrayList<>();
         //遍历集合
@@ -101,8 +102,8 @@ public class TanHuaService {
             //获取推荐用户的id
             Long userId = recommendUser.getUserId();
             //根据推荐用户id查询对应用户信息
-            UserInfo userInfo = userInfoService.findInfoById(userId,recommendUserDto);
-            if (!ObjectUtils.isEmpty(userInfo)){
+            UserInfo userInfo = userInfoService.findInfoById(userId, recommendUserDto);
+            if (!ObjectUtils.isEmpty(userInfo)) {
                 TodayBest todayBest = TodayBest.init(userInfo, recommendUser);
                 list.add(todayBest);
             }
@@ -119,12 +120,13 @@ public class TanHuaService {
 
     /**
      * 佳人信息
+     *
      * @param id
      * @return
      */
     public TodayBest findPersonalInfoById(Long id) {
 
-        RecommendUser recommendUser = recommendUserService.queryById(id,ThreadLocalUtils.get());
+        RecommendUser recommendUser = recommendUserService.queryById(id, ThreadLocalUtils.get());
         //查询id用户的详细信息
         UserInfo userInfo = userInfoApi.findById(id);
         //构造访客数据
@@ -137,12 +139,13 @@ public class TanHuaService {
         visitors.setScore(recommendUser.getScore());
         //执行保存操作
         visitorsApi.save(visitors);
-        return TodayBest.init(userInfo,recommendUser);
+        return TodayBest.init(userInfo, recommendUser);
 
     }
 
     /**
      * 查询陌生人问题
+     *
      * @param userId
      * @return
      */
@@ -153,6 +156,7 @@ public class TanHuaService {
 
     /**
      * 回复陌生人消息
+     *
      * @param params
      */
     public void strangerQuestions(Map<String, String> params) {
@@ -162,37 +166,38 @@ public class TanHuaService {
         Long uid = ThreadLocalUtils.get();
         UserInfo userInfo = userInfoApi.findById(uid);
         //创建map集合
-        Map<String,Object> map = new HashMap<>();
-        map .put("userId",uid);
+        Map<String, Object> map = new HashMap<>();
+        map.put("userId", uid);
         map.put("huanXinId", Constants.HX_USER_PREFIX + uid);
-        map .put("nickname",userInfo.getNickname());
-        map.put("strangerQuestion",getStrangerQuestions(Long.valueOf(userId)));
-        map.put("reply",reply);
+        map.put("nickname", userInfo.getNickname());
+        map.put("strangerQuestion", getStrangerQuestions(Long.valueOf(userId)));
+        map.put("reply", reply);
         //将map集合转换成json格式
         String message = JSON.toJSONString(map);
         //调用方法，发送信息给传进来的用户id
         Boolean aBoolean = template.sendMsg(Constants.HX_USER_PREFIX + userId, message);
-        if (!aBoolean){
+        if (!aBoolean) {
             throw new BusinessException(ErrorResult.error());
         }
     }
 
     /**
      * 推荐用户列表
+     *
      * @return
      */
     public List<TodayBest> queryCardList() {
         //调用api，排除喜欢和不喜欢的用户
         List<RecommendUser> cardsList = recommendUserApi.queryCardsList(ThreadLocalUtils.get(), 10);
         //判断是否为空，如果为空的话，构建默认数据
-        if (CollUtil.isEmpty(cardsList)){
+        if (CollUtil.isEmpty(cardsList)) {
             cardsList = new ArrayList<>();
             String[] userIds = recommendUser.split(",");
             for (String id : userIds) {
                 RecommendUser recommendUser = new RecommendUser();
                 recommendUser.setUserId(Convert.toLong(id));
                 recommendUser.setToUserId(ThreadLocalUtils.get());
-                recommendUser.setScore(RandomUtil.randomDouble(60,90));
+                recommendUser.setScore(RandomUtil.randomDouble(60, 90));
                 cardsList.add(recommendUser);
             }
         }
@@ -214,21 +219,22 @@ public class TanHuaService {
 
     /**
      * 喜欢
+     *
      * @param likeUserId
      */
     public void love(Long likeUserId) {
         Long userId = ThreadLocalUtils.get();
         //1.执行保存数据
         boolean saveOrUpdate = userLikeApi.saveOrUpdate(userId, likeUserId, true);
-        if (!saveOrUpdate){
+        if (!saveOrUpdate) {
             throw new BusinessException(ErrorResult.error());
         }
         //操作redis
-        redisTemplate.opsForSet().remove(Constants.USER_NOT_LIKE_KEY + userId,likeUserId.toString());
-        redisTemplate.opsForSet().add(Constants.USER_LIKE_KEY + userId,likeUserId.toString());
+        redisTemplate.opsForSet().remove(Constants.USER_NOT_LIKE_KEY + userId, likeUserId.toString());
+        redisTemplate.opsForSet().add(Constants.USER_LIKE_KEY + userId, likeUserId.toString());
         //判断是否双向喜欢
         boolean like = isLike(likeUserId, userId);
-        if (like){
+        if (like) {
             //如果是的话，则添加好友
             messageService.contacts(likeUserId);
         }
@@ -238,36 +244,37 @@ public class TanHuaService {
     /**
      * 是否双向喜欢
      */
-    public Boolean isLike(Long userId,Long likeUserId){
+    public Boolean isLike(Long userId, Long likeUserId) {
         String key = Constants.USER_LIKE_KEY + userId;
-        return redisTemplate.opsForSet().isMember(key,likeUserId.toString());
+        return redisTemplate.opsForSet().isMember(key, likeUserId.toString());
     }
 
     /**
      * 不喜欢
+     *
      * @param likeUserId
      */
     public void disLove(Long likeUserId) {
         //执行保存的操作
         Long userId = ThreadLocalUtils.get();
         boolean saveOrUpdate = userLikeApi.saveOrUpdate(userId, likeUserId, false);
-        if (!saveOrUpdate){
+        if (!saveOrUpdate) {
             throw new BusinessException(ErrorResult.error());
         }
         //判断是否是双向好友
         Boolean like = isLike(userId, likeUserId);
-        if (like){
+        if (like) {
             //如果是的话，则删除好友
             messageService.disContacts(likeUserId);
         }
         //操作redis
-        redisTemplate.opsForSet().remove(Constants.USER_LIKE_KEY + userId,likeUserId.toString());
-        redisTemplate.opsForSet().add(Constants.USER_NOT_LIKE_KEY + userId,likeUserId.toString());
-
+        redisTemplate.opsForSet().remove(Constants.USER_LIKE_KEY + userId, likeUserId.toString());
+        redisTemplate.opsForSet().add(Constants.USER_NOT_LIKE_KEY + userId, likeUserId.toString());
     }
 
     /**
      * 搜索附近
+     *
      * @param gender
      * @param distance
      * @return
@@ -276,7 +283,7 @@ public class TanHuaService {
         //根据id来查询附近的userId
         List<Long> ids = userLocationApi.queryNearUser(ThreadLocalUtils.get(), Double.valueOf(distance));
         //判断集合是否为空
-        if (CollUtil.isEmpty(ids)){
+        if (CollUtil.isEmpty(ids)) {
             return new ArrayList<>();
         }
         //创建对象
@@ -288,11 +295,11 @@ public class TanHuaService {
         List<NearUserVo> vos = new ArrayList<>();
         for (Long id : ids) {
             //排除当前用户
-            if (id == ThreadLocalUtils.get()){
+            if (id == ThreadLocalUtils.get()) {
                 continue;
             }
             UserInfo info = map.get(id);
-            if (!ObjectUtils.isEmpty(info)){
+            if (!ObjectUtils.isEmpty(info)) {
                 vos.add(NearUserVo.init(info));
             }
         }

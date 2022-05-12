@@ -15,7 +15,7 @@ public class PageResult implements Serializable {
     private Integer counts;
     private Integer pagesize;
     private Integer pages;
-    private Integer page;
+    private Integer page = 0;
     private List<?> items = new ArrayList<>();
 
     public PageResult(Integer page,Integer pagesize,
