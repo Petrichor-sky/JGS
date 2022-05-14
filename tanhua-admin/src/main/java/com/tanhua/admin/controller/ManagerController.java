@@ -11,7 +11,7 @@ import org.springframework.web.bind.annotation.*;
 import java.util.Map;
 
 @RestController
-@RequestMapping("manage")
+//@RequestMapping("manage")
 public class ManagerController {
 
     @Autowired
@@ -131,6 +131,18 @@ public class ManagerController {
     public ResponseEntity<Map<String,String>> untop(@PathVariable("id") String movementId){
         Map<String,String> map = managerService.untop(movementId);
         return ResponseEntity.ok(map);
+    }
+
+    /**
+     * 日志管理
+     */
+    @GetMapping("logs")
+    public ResponseEntity<PageResult> getLogs(@RequestParam(defaultValue = "1")Integer page,
+                                              @RequestParam(defaultValue = "10")Integer pageSize,
+                                              String sortProp,String sortOrder,String type,Long uid){
+
+        PageResult result = managerService.getLogs(page,pageSize,sortProp,sortOrder,type,uid);
+        return ResponseEntity.ok(result);
     }
 
 }

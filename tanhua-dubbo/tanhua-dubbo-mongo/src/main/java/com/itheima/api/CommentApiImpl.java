@@ -16,6 +16,7 @@ import org.springframework.data.mongodb.core.query.Criteria;
 import org.springframework.data.mongodb.core.query.Query;
 import org.springframework.data.mongodb.core.query.Update;
 import org.springframework.util.ObjectUtils;
+import org.springframework.util.StringUtils;
 
 import java.util.List;
 
@@ -229,6 +230,30 @@ public class CommentApiImpl implements CommentApi{
         Query query = Query.query(Criteria.where("publishId").is(new ObjectId(messageID))
                 .and("commentType").is(CommentType.COMMENT.getType()))
                 .with(pageable);
+        return mongoTemplate.find(query,Comment.class);
+    }
+
+    @Override
+    public List<Comment> findCommentsByPage(String messageID, Integer page, Integer pageSize, String sortProp, String sortOrder) {
+        sortProp = sortProp.trim();
+        sortOrder = sortOrder.trim();
+        Criteria criteria = new Criteria();
+        Query query = new Query();
+        Pageable pageable = PageRequest.of(page-1,pageSize);
+        if (!StringUtils.isEmpty(messageID)){
+            criteria.and("publishId").is(new ObjectId(messageID)).and("commentType").is(CommentType.COMMENT.getType());
+        }
+        if (!StringUtils.isEmpty(sortProp) && "ascending ".equals(sortOrder)){
+            query.addCriteria(criteria).with(Sort.by(Sort.Order.asc(sortOrder)));
+        }
+        if (!StringUtils.isEmpty(sortProp) && "descending  ".equals(sortOrder)){
+            query.addCriteria(criteria).with(Sort.by(Sort.Order.desc(sortOrder)));
+        }
+        if (StringUtils.isEmpty(sortProp) && StringUtils.isEmpty(sortOrder)){
+            query.addCriteria(criteria).with(Sort.by(Sort.Order.desc("createDate"))).with(pageable);
+            return mongoTemplate.find(query,Comment.class);
+        }
+        query.addCriteria(criteria).with(pageable);
         return mongoTemplate.find(query,Comment.class);
     }
 }

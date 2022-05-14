@@ -4,14 +4,13 @@ import cn.hutool.core.collection.CollUtil;
 import cn.hutool.core.convert.Convert;
 import com.alibaba.fastjson.JSON;
 import com.baomidou.mybatisplus.core.metadata.IPage;
-import com.itheima.api.CommentApi;
-import com.itheima.api.MovementApi;
-import com.itheima.api.UserInfoApi;
-import com.itheima.api.VideoApi;
+import com.baomidou.mybatisplus.extension.plugins.pagination.Page;
+import com.itheima.api.*;
 import com.itheima.mongo.Comment;
 import com.itheima.mongo.Constants;
 import com.itheima.mongo.Movement;
 import com.itheima.mongo.Video;
+import com.itheima.pojo.Log;
 import com.itheima.pojo.UserInfo;
 import com.itheima.vo.*;
 import org.apache.dubbo.config.annotation.DubboReference;
@@ -21,6 +20,7 @@ import org.springframework.data.redis.core.RedisTemplate;
 import org.springframework.stereotype.Service;
 import org.springframework.util.ObjectUtils;
 
+import java.text.SimpleDateFormat;
 import java.time.Duration;
 import java.util.*;
 import java.util.stream.Collectors;
@@ -38,6 +38,8 @@ public class ManagerService {
     private MovementApi movementApi;
     @Autowired
     private RedisTemplate<String,String> redisTemplate;
+    @DubboReference
+    private LogApi logApi;
     /**
      * 查询所有的用户信息
      * @param page
@@ -291,5 +293,42 @@ public class ManagerService {
         Map<String,String> map = new HashMap<>();
         map.put("message","取消置顶成功");
         return map;
+    }
+
+    /**
+     * 获取日志
+     * @param page
+     * @param pageSize
+     * @param sortProp
+     * @param sortOrder
+     * @param type
+     * @param uid
+     * @return
+     */
+    public PageResult getLogs(Integer page, Integer pageSize, String sortProp, String sortOrder, String type, Long uid) {
+        //查询对应的符合条件的数据
+        Page<Log> logPage = logApi.findLogByPageAndType(page,pageSize,sortProp,sortOrder,type,uid);
+        //获取集合数据
+        List<LogVo> vos = new ArrayList<>();
+        List<Log> records = logPage.getRecords();
+        for (Log log : records) {
+            LogVo vo = new LogVo();
+            vo.setId(Convert.toInt(log.getId()));
+            vo.setPlace(log.getPlace());
+            vo.setEquipment(log.getEquipment());
+            try {
+                vo.setLogTime(new SimpleDateFormat("yyyy-MM-dd").parse(log.getLogTime()).getTime());
+            }catch (Exception e){
+                e.printStackTrace();
+            }
+            vos.add(vo);
+        }
+        //创建返回值对象
+        PageResult result = new PageResult();
+        result.setPage(page);
+        result.setPagesize(pageSize);
+        result.setItems(vos);
+        result.setCounts(Convert.toInt(logPage.getTotal()));
+        return result;
     }
 }

@@ -215,7 +215,7 @@ public class TestSoulService {
         //遍历
         List<SoulSimilarYou> similarYouList = new ArrayList<>();
         for (SoulReport report : reportList) {
-            UserInfo userInfo = map.get(report.getId());
+            UserInfo userInfo = map.get(report.getUserId());
             if (!ObjectUtils.isEmpty(userInfo)){
                 //创建对象并赋值
                 SoulSimilarYou similarYou = new SoulSimilarYou();

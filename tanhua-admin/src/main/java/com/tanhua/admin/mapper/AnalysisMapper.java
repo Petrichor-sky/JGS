@@ -24,5 +24,5 @@ public interface AnalysisMapper extends BaseMapper<Analysis> {
     Long QueryTodayLoginTimes(@Param("today") String today);
 
     @Select("SELECT record_date AS title,${type} AS amount FROM tb_analysis WHERE record_date BETWEEN #{start} AND #{end}")
-    List<Map<String, Object>> QueryList(@Param("type") String type, String start, String end);
+    List<Map<String, Object>> QueryList(@Param("type") String type,@Param("start") String start,@Param("end") String end);
 }

@@ -26,8 +26,8 @@ public class AnalysisService {
     public void analysis() throws ParseException {
         //String todayStr = new SimpleDateFormat("yyyy-MM-dd").format(new Date());
         //String yestodayStr =  DateUtil.yesterday().toString("yyyy-MM-dd"); //工具类
-        String todayStr = "2021-05-11";
-        String yestodayStr = "2021-05-11";
+        String todayStr = "2022-05-12";
+        String yestodayStr = "2022-05-12";
         //1、统计每日注册用户数
         Integer numRegistered = logMapper.queryByTypeAndLogTime("0102",todayStr);
         //2、统计每日登陆用户
