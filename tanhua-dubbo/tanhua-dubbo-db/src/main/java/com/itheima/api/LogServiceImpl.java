@@ -8,6 +8,8 @@ import org.apache.dubbo.config.annotation.DubboService;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.util.ObjectUtils;
 
+import java.util.List;
+
 @DubboService
 public class LogServiceImpl implements LogApi{
 
@@ -31,5 +33,26 @@ public class LogServiceImpl implements LogApi{
             qw.orderByDesc("created");
         }
         return logMapper.selectPage(logPage,qw);
+    }
+
+    @Override
+    public void save(Log log) {
+        logMapper.insert(log);
+    }
+
+    /**
+     * 查找对应时间的用户id
+     * @param start
+     * @param end
+     * @return
+     */
+    @Override
+    public List<Long> findLogByTimeAndType(String start, String end) {
+        return logMapper.findLogByTimeAndType(start,end);
+    }
+
+    @Override
+    public void update(Log log) {
+        logMapper.updateById(log);
     }
 }

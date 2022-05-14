@@ -2,12 +2,16 @@ package com.tanhua.admin.service;
 
 import cn.hutool.core.date.DateField;
 import cn.hutool.core.date.DateUtil;
+import com.itheima.api.LogApi;
+import com.itheima.api.MockUserInfoApi;
 import com.itheima.vo.AnalysisSummaryVo;
+import org.apache.dubbo.config.annotation.DubboReference;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 
 import java.math.BigDecimal;
 import java.text.SimpleDateFormat;
+import java.util.Calendar;
 import java.util.Date;
 import java.util.List;
 import java.util.Map;
@@ -17,6 +21,8 @@ public class DashboardService {
 
     @Autowired
     private AnalysisService analysisService;
+    @DubboReference
+    private MockUserInfoApi mockUserInfoApi;
 
     /**
      * 新增、活跃用户、次日留存率
@@ -42,10 +48,15 @@ public class DashboardService {
         //创建对象
         AnalysisSummaryVo vo = new AnalysisSummaryVo();
         //获取当前Date时间
-        String today = new SimpleDateFormat("yyyy-MM-dd").format(DateUtil.date());
-        String yesterday = new SimpleDateFormat("yyyy-MM-dd").format(DateUtil.yesterday());
-        String beforeWeek = new SimpleDateFormat("yyyy-MM-dd").format(DateUtil.lastWeek());
-        String beforeMonth = new SimpleDateFormat("yyyy-MM-dd").format(DateUtil.lastMonth());
+        SimpleDateFormat simpleDateFormat = new SimpleDateFormat("yyyy-MM-dd");
+        String today = simpleDateFormat.format(DateUtil.date());
+        String yesterday = simpleDateFormat.format(DateUtil.yesterday());
+        String beforeWeek = simpleDateFormat.format(DateUtil.lastWeek());
+        String beforeMonth = simpleDateFormat.format(DateUtil.lastMonth());
+        Calendar calendar = Calendar.getInstance();
+        calendar.setTime(DateUtil.yesterday());
+        calendar.add(Calendar.DAY_OF_MONTH,-1);
+        String beforeYesterday = simpleDateFormat.format(calendar.getTime());
         //获取累计用户
         vo.setCumulativeUsers(analysisService.CountCumulativeUsers());
         //过去30天活跃用户
@@ -64,6 +75,10 @@ public class DashboardService {
         vo.setNewUsersTodayRate(compare(vo.getNewUsersToday(),analysisService.QueryNewUsersCount(yesterday)));
         //今日登录次数环比
         vo.setLoginTimesTodayRate(compare(vo.getLoginTimesToday(),analysisService.QueryTodayLoginTimes(yesterday)));
+        //昨日的活跃用户
+        vo.setActiveUsersYesterday(analysisService.QueryActiveCount(yesterday,yesterday));
+        //昨日的活跃用户环比
+        vo.setActiveUsersYesterdayRate(compare(vo.getActiveUsersYesterday(),analysisService.QueryActiveCount(beforeYesterday,beforeYesterday)));
         //返回结果
         return vo;
     }
@@ -85,5 +100,23 @@ public class DashboardService {
                     .divide(BigDecimal.valueOf(yesterdayCount),2,BigDecimal.ROUND_HALF_DOWN);
         }
         return result;
+    }
+
+    /**
+     * 注册用户分布，行业top、年龄、性别、地区
+     * @param sd
+     * @param ed
+     * @return
+     */
+    @DubboReference
+    private LogApi logApi;
+    public Map<String, List<Map<String, Object>>> distribution(Long sd, Long ed) {
+        Date startDate = new Date(sd);
+        Date endDate = new Date(ed);
+        String start = new SimpleDateFormat("yyyy-MM-dd").format(startDate);
+        String end = new SimpleDateFormat("yyyy-MM-dd").format(endDate);
+        //根据时间查找对应的注册用户的Id
+        List<Long> userIds = logApi.findLogByTimeAndType(start,end);
+        return mockUserInfoApi.countByTime(userIds);
     }
 }

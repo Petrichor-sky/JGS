@@ -36,4 +36,13 @@ public class DashboardController {
         AnalysisSummaryVo vo = dashboardService.summary();
         return ResponseEntity.ok(vo);
     }
+
+    /**
+     * 注册用户分布，行业top、年龄、性别、地区
+     */
+    @GetMapping("distribution")
+    public ResponseEntity<Map<String,List<Map<String,Object>>>> distribution(Long sd,Long ed){
+        Map<String,List<Map<String,Object>>> map = dashboardService.distribution(sd,ed);
+        return ResponseEntity.ok(map);
+    }
 }

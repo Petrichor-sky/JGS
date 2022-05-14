@@ -1,13 +1,14 @@
 package com.itheima.service;
 
 import cn.hutool.core.convert.Convert;
+import cn.hutool.core.date.DateUtil;
 import com.alibaba.fastjson.JSON;
+import com.itheima.api.LogApi;
 import com.itheima.api.UserApi;
+import com.itheima.api.UseTimeLogApi;
 import com.itheima.exception.BusinessException;
 import com.itheima.mongo.Constants;
-import com.itheima.pojo.ErrorResult;
-import com.itheima.pojo.User;
-import com.itheima.pojo.UserInfo;
+import com.itheima.pojo.*;
 import com.itheima.template.AipFaceTemplate;
 import com.itheima.template.HuanXinTemplate;
 import com.itheima.template.OssTemplate;
@@ -25,6 +26,7 @@ import org.springframework.util.ObjectUtils;
 import org.springframework.web.multipart.MultipartFile;
 
 import java.io.IOException;
+import java.text.SimpleDateFormat;
 import java.time.Duration;
 import java.util.HashMap;
 import java.util.Map;
@@ -55,6 +57,11 @@ public class UserService {
 
     @Autowired
     private MqMessageService mqMessageService;
+
+    @DubboReference
+    private UseTimeLogApi useTimeLogApi;
+    @DubboReference
+    private LogApi logApi;
 
     /**
      * 发送验证码功能
@@ -101,6 +108,13 @@ public class UserService {
             user.setId(id);
             isNew = true;
 
+            //将注册信息加入到日志记录里
+            Log log = new Log();
+            log.setUserId(Convert.toLong(id));
+            log.setLogTime(new SimpleDateFormat("yyyy-MM-dd").format(DateUtil.date()));
+            log.setType(type);
+            logApi.save(log);
+
             //注册环信用户
             String hxUSer = "hx" + user.getId();
             Boolean create = huanXinTemplate.createUser(hxUSer, Constants.INIT_PASSWORD);
@@ -120,6 +134,14 @@ public class UserService {
         }
         //向MQ中发送消息
         mqMessageService.sendLogMessage(Convert.toLong(user.getId()),type,"user",null);
+        //记录下该用户的登录信息
+        SimpleDateFormat simpleDateFormat = new SimpleDateFormat("yyyy-MM-dd");
+        String today = simpleDateFormat.format(DateUtil.date());
+        UseTimeLog log = new UseTimeLog();
+        log.setLogDate(today);
+        log.setLogIn(System.currentTimeMillis());
+        log.setUserid(ThreadLocalUtils.get());
+        useTimeLogApi.save(log);
         //6.获取该用户的token
         Map<String,Object> params = new HashMap<>();
         params.put("id",user.getId());
@@ -141,6 +163,12 @@ public class UserService {
         //设置id
         userInfo.setId(ThreadLocalUtils.get());
         //设置默认年龄
+        Log log = new Log();
+        log.setUserId(ThreadLocalUtils.get());
+        log.setType("0102");
+        log.setPlace(userInfo.getCity());
+        log.setEquipment("华为荣耀P26");
+        logApi.update(log);
         userInfo.setAge(18);
         //将数据保存到userInfo表中
         userInfoService.save(userInfo);

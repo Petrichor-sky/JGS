@@ -13,7 +13,7 @@ import java.io.Serializable;
 @NoArgsConstructor
 @AllArgsConstructor
 @TableName("tb_log")
-public class Log implements Serializable {
+public class Log extends BasePojo implements Serializable {
     /**
      * id
      */

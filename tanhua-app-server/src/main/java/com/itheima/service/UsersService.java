@@ -51,10 +51,12 @@ public class UsersService {
         UserInfo userInfo = userInfoApi.findById(userID);
         UserInfoVo userInfoVo = new UserInfoVo();
         //数据拷贝
-        BeanUtils.copyProperties(userInfo,userInfoVo);
-        //对年龄做字符串处理
-        String strAge = StrUtil.toString(userInfo.getAge());
-        userInfoVo.setAge(strAge);
+        if (!ObjectUtils.isEmpty(userInfo)){
+            BeanUtils.copyProperties(userInfo,userInfoVo);
+            //对年龄做字符串处理
+            String strAge = StrUtil.toString(userInfo.getAge());
+            userInfoVo.setAge(strAge);
+        }
         //返回结果
         return userInfoVo;
 
