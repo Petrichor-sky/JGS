@@ -4,8 +4,8 @@ import cn.hutool.core.convert.Convert;
 import cn.hutool.core.date.DateUtil;
 import com.alibaba.fastjson.JSON;
 import com.itheima.api.LogApi;
-import com.itheima.api.UserApi;
 import com.itheima.api.UseTimeLogApi;
+import com.itheima.api.UserApi;
 import com.itheima.exception.BusinessException;
 import com.itheima.mongo.Constants;
 import com.itheima.pojo.*;
@@ -98,22 +98,24 @@ public class UserService {
         User user = userApi.findByPhone(phone);
         String type = "0101";//登录
         //5.判断是否为空，如果为空的话，则进行封装并添加
+        int id = 0;
         if (ObjectUtils.isEmpty(user)){
             type = "0102";//注册
             user=new User();
             user.setMobile(phone);
             user.setPassword(DigestUtils.md5DigestAsHex("123456".getBytes()));
             //保存数据
-            int id = userApi.save(user);
+            id = userApi.save(user);
             user.setId(id);
             isNew = true;
 
             //将注册信息加入到日志记录里
-            Log log = new Log();
+          /*  Log log = new Log();
             log.setUserId(Convert.toLong(id));
             log.setLogTime(new SimpleDateFormat("yyyy-MM-dd").format(DateUtil.date()));
             log.setType(type);
-            logApi.save(log);
+            log.setCreated(new Date());
+            logApi.save(log);*/
 
             //注册环信用户
             String hxUSer = "hx" + user.getId();
@@ -140,7 +142,11 @@ public class UserService {
         UseTimeLog log = new UseTimeLog();
         log.setLogDate(today);
         log.setLogIn(System.currentTimeMillis());
-        log.setUserid(ThreadLocalUtils.get());
+        if (ThreadLocalUtils.get() == null){
+            log.setUserid(Convert.toLong(id));
+        }else {
+            log.setUserid(ThreadLocalUtils.get());
+        }
         useTimeLogApi.save(log);
         //6.获取该用户的token
         Map<String,Object> params = new HashMap<>();

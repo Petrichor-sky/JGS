@@ -1,12 +1,12 @@
 package com.itheima.pojo;
 
+import com.baomidou.mybatisplus.annotation.TableName;
 import lombok.Data;
 
 import java.io.Serializable;
-import java.util.Date;
 
 @Data
-//@TableName("tb_use_time_log")
+@TableName("tb_use_time_log")
 public class UseTimeLog extends BasePojo implements Serializable {
 
     private Long id;
@@ -26,13 +26,5 @@ public class UseTimeLog extends BasePojo implements Serializable {
      * 登出时间
      */
     private Long logOut;
-    /**
-     * 使用时间
-     */
-    private Long useTime;
-    /**
-     * 创建时间
-     */
-    private Date created;
 
 }
