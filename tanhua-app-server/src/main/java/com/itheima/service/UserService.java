@@ -108,6 +108,8 @@ public class UserService {
             id = userApi.save(user);
             user.setId(id);
             isNew = true;
+            //向MQ中发送消息
+            mqMessageService.sendLogMessage(Convert.toLong(user.getId()),type,"user",id + "");
 
             //将注册信息加入到日志记录里
           /*  Log log = new Log();
@@ -135,17 +137,17 @@ public class UserService {
             }
         }
         //向MQ中发送消息
-        mqMessageService.sendLogMessage(Convert.toLong(user.getId()),type,"user",null);
+        mqMessageService.sendLogMessage(Convert.toLong(user.getId()),type,"user",user.getId().toString());
         //记录下该用户的登录信息
         SimpleDateFormat simpleDateFormat = new SimpleDateFormat("yyyy-MM-dd");
         String today = simpleDateFormat.format(DateUtil.date());
         UseTimeLog log = new UseTimeLog();
         log.setLogDate(today);
         log.setLogIn(System.currentTimeMillis());
-        if (ThreadLocalUtils.get() == null){
+        if (id != 0){
             log.setUserid(Convert.toLong(id));
         }else {
-            log.setUserid(ThreadLocalUtils.get());
+            log.setUserid(Convert.toLong(user.getId()));
         }
         useTimeLogApi.save(log);
         //6.获取该用户的token

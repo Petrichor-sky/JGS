@@ -58,5 +58,8 @@ public class ErrorResult {
     public static ErrorResult freezeError3() {
         return ErrorResult.builder().errCode("000012").errMessage("您的账号已被冻结发布动态").build();
     }
+    public static ErrorResult messagesError() {
+        return ErrorResult.builder().errCode("000013").errMessage("请先撤销后再进行此操作").build();
+    }
 
 }

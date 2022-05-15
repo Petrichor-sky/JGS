@@ -64,4 +64,7 @@ public class Constants {
 
     //访问用户
     public static final String VISITORS_USER = "VISITOR_USER";
+
+    //推荐朋友
+    public static final String RECOMMEND_USER = "RECOMMEND_USER";
 }

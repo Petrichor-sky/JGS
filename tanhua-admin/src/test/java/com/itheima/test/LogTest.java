@@ -18,11 +18,11 @@ public class LogTest {
     @Autowired
     private LogMapper logMapper;
     
-    private String logTime = "2021-05-15";
+    private String logTime = "2021-05-17";
 
     //模拟登录数据
     public void testInsertLoginLog() {
-        for (int i = 0; i < 14; i++) {
+        for (int i = 0; i < 16; i++) {
             Log log = new Log();
             log.setUserId((long)(i+1));
             log.setLogTime(logTime);
@@ -33,7 +33,7 @@ public class LogTest {
 
     //模拟注册数据
     public void testInsertRegistLog() {
-        for (int i = 0; i < 13; i++) {
+        for (int i = 0; i < 14; i++) {
             Log log = new Log();
             log.setUserId((long)(i+1));
             log.setLogTime(logTime);
@@ -44,7 +44,7 @@ public class LogTest {
     //模拟其他操作
     public void testInsertOtherLog() {
         String[] types = new String[]{"0201","0202","0203","0204","0205","0206","0207","0301","0302","0303","0304"};
-        for (int i = 0; i < 14; i++) {
+        for (int i = 0; i < 12; i++) {
             Log log = new Log();
             log.setUserId((long)(i+1));
             log.setLogTime(logTime);

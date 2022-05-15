@@ -215,9 +215,6 @@ public class MockUserInfoServiceImpl implements MockUserInfoApi{
         Map<String, Object> localMap26 = new HashMap<>();
         localMap26.put("title","上海");
         localMap26.put("amount",userInfoMapper.countByLocal("上海",userIds));
-        Map<String, Object> localMap27 = new HashMap<>();
-        localMap27.put("title","杭州");
-        localMap27.put("amount",userInfoMapper.countByLocal("杭州",userIds));
         Map<String, Object> localMap28 = new HashMap<>();
         localMap28.put("title","深圳");
         localMap28.put("amount",userInfoMapper.countByLocal("深圳",userIds));
@@ -245,7 +242,6 @@ public class MockUserInfoServiceImpl implements MockUserInfoApi{
         localList.add(localMap24);
         localList.add(localMap25);
         localList.add(localMap26);
-        localList.add(localMap27);
         localList.add(localMap28);
         map.put("localDistribution",localList);
 

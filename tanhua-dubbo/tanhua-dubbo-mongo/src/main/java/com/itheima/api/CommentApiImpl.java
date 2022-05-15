@@ -244,17 +244,17 @@ public class CommentApiImpl implements CommentApi{
         if (!StringUtils.isEmpty(messageID)){
             criteria.and("publishId").is(new ObjectId(messageID)).and("commentType").is(CommentType.COMMENT.getType());
         }
-        if (!StringUtils.isEmpty(sortProp) && "ascending ".equals(sortOrder)){
-            query.addCriteria(criteria).with(Sort.by(Sort.Order.asc(sortOrder)));
+        if (!StringUtils.isEmpty(sortProp) && "ascending".equals(sortOrder)){
+            query.addCriteria(criteria).with(Sort.by(Sort.Order.asc(sortProp)));
         }
-        if (!StringUtils.isEmpty(sortProp) && "descending  ".equals(sortOrder)){
-            query.addCriteria(criteria).with(Sort.by(Sort.Order.desc(sortOrder)));
+        if (!StringUtils.isEmpty(sortProp) && "descending".equals(sortOrder)){
+            query.addCriteria(criteria).with(Sort.by(Sort.Order.desc(sortProp)));
         }
         if (StringUtils.isEmpty(sortProp) && StringUtils.isEmpty(sortOrder)){
             query.addCriteria(criteria).with(Sort.by(Sort.Order.desc("createDate"))).with(pageable);
             return mongoTemplate.find(query,Comment.class);
         }
-        query.addCriteria(criteria).with(pageable);
+        query.with(pageable);
         return mongoTemplate.find(query,Comment.class);
     }
 

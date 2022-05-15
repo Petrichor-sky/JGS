@@ -8,11 +8,9 @@ import com.baomidou.mybatisplus.extension.plugins.pagination.Page;
 import com.itheima.api.*;
 import com.itheima.entity.MockUserInfo;
 import com.itheima.mongo.*;
-import com.itheima.pojo.Log;
-import com.itheima.pojo.MockPageResult;
-import com.itheima.pojo.Totals;
-import com.itheima.pojo.UserInfo;
+import com.itheima.pojo.*;
 import com.itheima.vo.*;
+import com.tanhua.admin.exception.BusinessException;
 import org.apache.dubbo.config.annotation.DubboReference;
 import org.bson.types.ObjectId;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -244,6 +242,9 @@ public class MockManageService {
                 .collect(Collectors.toList());
         if (!idList.isEmpty()){
             for (ObjectId objectId : idList) {
+                if ("4".equals(mockMovementApi.findByMoveId(objectId.toHexString()).getState())){
+                    throw new BusinessException(ErrorResult.messagesError().getErrMessage());
+                }
                 mockMovementApi.updateStateById(objectId,"5");
             }
         }
@@ -261,12 +262,15 @@ public class MockManageService {
         //将String类型的id转换为ObjectId类型的
         List<ObjectId> idList = Arrays.stream(ids).map(e -> new ObjectId(e))
                 .collect(Collectors.toList());
+        Map<String,String> map = new HashMap<>();
         if (!idList.isEmpty()){
             for (ObjectId objectId : idList) {
+                if ("5".equals(mockMovementApi.findByMoveId(objectId.toHexString()).getState())){
+                    throw new BusinessException(ErrorResult.messagesError().getErrMessage());
+                }
                 mockMovementApi.updateStateById(objectId,"4");
             }
         }
-        Map<String,String> map = new HashMap<>();
         map.put("message","拒绝成功");
         return map;
     }
