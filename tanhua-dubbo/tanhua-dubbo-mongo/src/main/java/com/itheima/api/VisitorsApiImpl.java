@@ -1,10 +1,7 @@
 package com.itheima.api;
 
-import cn.hutool.core.date.DateUtil;
-import cn.hutool.core.util.ObjectUtil;
 import com.itheima.mongo.Visitors;
 import org.apache.dubbo.config.annotation.DubboService;
-import org.bson.types.ObjectId;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.data.domain.PageRequest;
 import org.springframework.data.domain.Pageable;
@@ -35,6 +32,9 @@ public class VisitorsApiImpl implements VisitorsApi{
      */
     @Override
     public void save(Visitors visitors) {
+        if(ObjectUtils.nullSafeEquals(visitors.getVisitorUserId(),visitors.getUserId())){
+            return;
+        }
         //1.查询访客数据
         Query query = Query.query(Criteria.where("userId").is(visitors.getUserId())
                 .and("visitorUserId").is(visitors.getVisitorUserId())
@@ -53,7 +53,7 @@ public class VisitorsApiImpl implements VisitorsApi{
      */
     @Override
     public List<Visitors> queryMyVisitors(Long date, Long userId) {
-        Criteria criteria = Criteria.where("userId").is(userId);
+        Criteria criteria = Criteria.where("userId").is(userId).and("visitorUserId").ne(userId);
         if (date != null){
             criteria.and("date").gt(date);
         }

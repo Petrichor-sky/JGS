@@ -14,7 +14,7 @@ import java.io.Serializable;
 @AllArgsConstructor
 public class VoiceVo implements Serializable {
 
-    private Integer id;                //用户id
+    private Long id;                //用户id
     private String avatar;             //头像
     private String nickname;           //昵称
     private String gender;            //性别

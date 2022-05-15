@@ -47,7 +47,7 @@ public class MovementService {
     private CommentApi commentApi;
     @Autowired
     private MqMessageService mqMessageService;
-    @Autowired
+    @DubboReference
     private UserLocationApi userLocationApi;
     /**
      * 发布动态
@@ -68,8 +68,7 @@ public class MovementService {
                 throw new BusinessException(ErrorResult.freezeError3());
             }
         }
-        //向MQ中发送消息
-        mqMessageService.sendLogMessage(ThreadLocalUtils.get(),"0201","movement",movement.getId().toHexString());
+
 
         //将文件上传到阿里云oss，获取地址
         List<String> medias = new ArrayList<>();
@@ -88,6 +87,8 @@ public class MovementService {
         //调用movementApi实现发布动态功能
         Movement mvResult = movementApi.saveMovements(movement);
         timeLineService.saveTimeLine(mvResult.getUserId(),mvResult.getId());
+        //向MQ中发送消息
+        mqMessageService.sendLogMessage(ThreadLocalUtils.get(),"0201","movement",mvResult.getId().toHexString());
     }
 
     /**
@@ -111,6 +112,7 @@ public class MovementService {
             MovementsVo vo = MovementsVo.init(userInfo, movement);
             vo.setHasLiked(commentApi.hasComment(movement.getId().toHexString(),ThreadLocalUtils.get(), CommentType.LIKE) ? 1 : 0);
             vo.setCommentCount(commentApi.countByPublishId(movement.getId().toHexString()));
+            vo.setHasLoved(commentApi.hasComment(movement.getId().toHexString(),ThreadLocalUtils.get(),CommentType.LOVE) ? 1 : 0);
             list.add(vo);
         }
         Integer count = movementApi.countByUserId(userId);
@@ -149,6 +151,7 @@ public class MovementService {
             MovementsVo vo = MovementsVo.init(userInfo, movement);
             vo.setHasLiked(commentApi.hasComment(movement.getId().toHexString(),ThreadLocalUtils.get(), CommentType.LIKE) ? 1 : 0);
             vo.setCommentCount(commentApi.countByPublishId(movement.getId().toHexString()));
+            vo.setHasLoved(commentApi.hasComment(movement.getId().toHexString(),ThreadLocalUtils.get(), CommentType.LOVE) ? 1 : 0);
             movementsVoList.add(vo);
         }
         //创建返回数据对象

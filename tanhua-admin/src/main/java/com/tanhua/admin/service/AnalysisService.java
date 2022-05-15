@@ -1,6 +1,5 @@
 package com.tanhua.admin.service;
 
-import cn.hutool.core.date.DateUtil;
 import com.baomidou.mybatisplus.core.conditions.query.QueryWrapper;
 import com.itheima.pojo.Analysis;
 import com.tanhua.admin.mapper.AnalysisMapper;
@@ -25,10 +24,10 @@ public class AnalysisService {
     private AnalysisMapper analysisMapper;
 
     public void analysis() throws ParseException {
-        String todayStr = new SimpleDateFormat("yyyy-MM-dd").format(new Date());
-        String yestodayStr =  DateUtil.yesterday().toString("yyyy-MM-dd"); //工具类
-        //String todayStr = "2022-05-12";
-        //String yestodayStr = "2022-05-11";
+        //String todayStr = new SimpleDateFormat("yyyy-MM-dd").format(new Date());
+        //String yestodayStr =  DateUtil.yesterday().toString("yyyy-MM-dd"); //工具类
+        String todayStr = "2021-05-15";
+        String yestodayStr = "2021-05-14";
         //1、统计每日注册用户数
         Integer numRegistered = logMapper.queryByTypeAndLogTime("0102",todayStr);
         //2、统计每日登陆用户

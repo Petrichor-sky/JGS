@@ -27,7 +27,7 @@ public class VisitorVo implements Serializable {
             vo.setTags(userInfo.getTags().split(","));
         }
         vo.setUserId(userInfo.getId());
-        //vo.setFateValue(visitors.getScore().intValue());
+        vo.setFateValue(visitors.getScore().intValue());
         return vo;
     }
 }

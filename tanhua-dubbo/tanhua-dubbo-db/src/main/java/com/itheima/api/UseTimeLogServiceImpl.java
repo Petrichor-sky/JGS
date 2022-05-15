@@ -18,4 +18,9 @@ public class UseTimeLogServiceImpl implements UseTimeLogApi {
     public void save(UseTimeLog log) {
         useTimeLogMapper.insert(log);
     }
+
+    @Override
+    public Long CountUseTime(String today, String beforeWeek) {
+        return useTimeLogMapper.CountUseTime(today,beforeWeek);
+    }
 }

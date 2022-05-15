@@ -1,9 +1,11 @@
 package com.tanhua.admin.service;
 
+import cn.hutool.core.convert.Convert;
 import cn.hutool.core.date.DateField;
 import cn.hutool.core.date.DateUtil;
 import com.itheima.api.LogApi;
 import com.itheima.api.MockUserInfoApi;
+import com.itheima.api.UseTimeLogApi;
 import com.itheima.vo.AnalysisSummaryVo;
 import org.apache.dubbo.config.annotation.DubboReference;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -23,6 +25,8 @@ public class DashboardService {
     private AnalysisService analysisService;
     @DubboReference
     private MockUserInfoApi mockUserInfoApi;
+    @DubboReference
+    private UseTimeLogApi useTimeLogApi;
 
     /**
      * 新增、活跃用户、次日留存率
@@ -79,6 +83,8 @@ public class DashboardService {
         vo.setActiveUsersYesterday(analysisService.QueryActiveCount(yesterday,yesterday));
         //昨日的活跃用户环比
         vo.setActiveUsersYesterdayRate(compare(vo.getActiveUsersYesterday(),analysisService.QueryActiveCount(beforeYesterday,beforeYesterday)));
+        //近7天的平均日使用时间
+        vo.setUseTimePassWeek(Convert.toLong(useTimeLogApi.CountUseTime(today,beforeWeek) / 7));
         //返回结果
         return vo;
     }

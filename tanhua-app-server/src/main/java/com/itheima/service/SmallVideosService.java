@@ -4,7 +4,6 @@ import cn.hutool.core.collection.CollUtil;
 import cn.hutool.core.convert.Convert;
 import cn.hutool.core.util.PageUtil;
 import com.github.tobato.fastdfs.domain.conn.FdfsWebServer;
-import com.github.tobato.fastdfs.domain.fdfs.StorePath;
 import com.github.tobato.fastdfs.service.FastFileStorageClient;
 import com.itheima.api.CommentApi;
 import com.itheima.api.FocusUserApi;
@@ -62,6 +61,8 @@ public class SmallVideosService {
     private MessageService messageService;
     @Autowired
     private MqMessageService mqMessageService;
+    @Autowired
+    private FileStorageService fileStorageService;
     /**
      * 发布视频
      * @param videoThumbnail 视频
@@ -73,10 +74,11 @@ public class SmallVideosService {
             throw new BusinessException(ErrorResult.error());
         }
         //1.将视频上传到FastDFS上，获取访问URL
-        String filename = videoFile.getOriginalFilename();
+        /*String filename = videoFile.getOriginalFilename();
         filename= filename.substring(filename.lastIndexOf(".") + 1);
         StorePath path = client.uploadFile(videoFile.getInputStream(), videoFile.getSize(), filename, null);
-        String videoUrl = webServer.getWebServerUrl() + path.getFullPath();
+        String videoUrl = webServer.getWebServerUrl() + path.getFullPath();*/
+        String videoUrl = fileStorageService.upload(videoFile);
 
         //2.将图片上传到阿里云OSS上
         String imageUrl = ossTemplate.upload(videoThumbnail.getOriginalFilename(), videoThumbnail.getInputStream());
@@ -140,7 +142,7 @@ public class SmallVideosService {
                 VideoVo videoVo = VideoVo.init(userInfo, video);
                 videoVo.setHasLiked(commentApi.hasComment(video.getId().toHexString(),ThreadLocalUtils.get(),CommentType.LIKE) ? 1 : 0);
                 videoVo.setHasFocus(focusUserApi.hasFocus(video.getUserId(),ThreadLocalUtils.get()) ? 1 : 0);
-                videoVo.setLikeCount(video.getLikeCount());
+                videoVo.setLikeCount(commentApi.countLikeCount(video.getId(),CommentType.LIKE));
                 vos.add(videoVo);
             }
         }
@@ -161,7 +163,7 @@ public class SmallVideosService {
         //判断是否已点赞
         boolean hasComment = commentApi.hasComment(videoId, ThreadLocalUtils.get(), CommentType.LIKE);
         if (hasComment){
-            throw new BusinessException(ErrorResult.error());
+            throw new BusinessException(ErrorResult.likeError());
         }
         //封装对象
         Comment comment = new Comment();
@@ -212,8 +214,7 @@ public class SmallVideosService {
      * @return
      */
     public PageResult getComments(String videoId, Integer page, Integer pageSize) {
-        PageResult result = commentService.getCommemts(videoId, page, pageSize);
-        return result;
+        return commentService.getCommemts(videoId, page, pageSize);
     }
 
     /**

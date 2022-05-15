@@ -153,6 +153,7 @@ public class CommentApiImpl implements CommentApi{
 
     @Override
     public Comment findCommentById(String commentId) {
+
         return  mongoTemplate.findById(commentId,Comment.class);
     }
 
@@ -255,5 +256,18 @@ public class CommentApiImpl implements CommentApi{
         }
         query.addCriteria(criteria).with(pageable);
         return mongoTemplate.find(query,Comment.class);
+    }
+
+    /**
+     * 统计点赞数量
+     * @param id
+     * @param commentType
+     * @return
+     */
+    @Override
+    public Integer countLikeCount(ObjectId id, CommentType commentType) {
+        Query query = Query.query(Criteria.where("publishId").is(id)
+                .and("commentType").is(commentType.getType()));
+        return Math.toIntExact(mongoTemplate.count(query, Comment.class));
     }
 }

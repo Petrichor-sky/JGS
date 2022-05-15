@@ -6,9 +6,9 @@ import com.itheima.api.CommentApi;
 import com.itheima.api.MovementApi;
 import com.itheima.api.UserInfoApi;
 import com.itheima.api.VisitorsApi;
+import com.itheima.enums.CommentType;
 import com.itheima.exception.BusinessException;
 import com.itheima.mongo.Comment;
-import com.itheima.enums.CommentType;
 import com.itheima.mongo.Constants;
 import com.itheima.mongo.Visitors;
 import com.itheima.pojo.ErrorResult;
@@ -37,13 +37,15 @@ public class CommentService {
     @DubboReference
     private MovementApi movementApi;
     @Autowired
-    private RedisTemplate<String,String> redisTemplate;
+    private RedisTemplate<String, String> redisTemplate;
     @DubboReference
     private VisitorsApi visitorsApi;
     @Autowired
     private MqMessageService mqMessageService;
+
     /**
      * 评论列表
+     *
      * @param movementId
      * @param page
      * @param pageSize
@@ -51,11 +53,11 @@ public class CommentService {
      */
     public PageResult getCommemts(String movementId, Integer page, Integer pageSize) {
         //动态id
-        List<Comment> commentList = commentApi.findComments(movementId,page,pageSize);
+        List<Comment> commentList = commentApi.findComments(movementId, page, pageSize);
         PageResult result = new PageResult();
         result.setPage(page);
         result.setPagesize(pageSize);
-        if (CollUtil.isEmpty(commentList)){
+        if (CollUtil.isEmpty(commentList)) {
             result.setCounts(0);
             return result;
         }
@@ -65,7 +67,7 @@ public class CommentService {
             //通过userId来查询对应的信息
             UserInfo userInfo = userInfoApi.findById(userId);
             CommentVo vo = CommentVo.init(userInfo, comment);
-            vo.setHasLiked(commentApi.hasComment(comment.getId().toHexString(),ThreadLocalUtils.get(),CommentType.LIKE) ? 1 : 0);
+            vo.setHasLiked(commentApi.hasComment(comment.getId().toHexString(), ThreadLocalUtils.get(), CommentType.LIKE) ? 1 : 0);
             commentVoList.add(vo);
         }
         Integer count = commentApi.countByPublishId(movementId);
@@ -76,6 +78,7 @@ public class CommentService {
 
     /**
      * 发布评论
+     *
      * @return
      */
     public void saveCommemts(Map<String, String> map) {
@@ -105,23 +108,24 @@ public class CommentService {
         //执行保存操作
         commentApi.save(comment);
         //向MQ中发送消息
-        mqMessageService.sendLogMessage(ThreadLocalUtils.get(),"0205","comment",comment.getId().toHexString());
+        mqMessageService.sendLogMessage(ThreadLocalUtils.get(), "0205", "comment", comment.getPublishId().toHexString());
     }
 
     /**
      * 动态点赞
+     *
      * @param movementId
      * @return
      */
     public Integer likeMovement(String movementId) {
         //查询是否已经点赞
-        boolean hasComment = commentApi.hasComment(movementId,ThreadLocalUtils.get(),CommentType.LIKE);
+        boolean hasComment = commentApi.hasComment(movementId, ThreadLocalUtils.get(), CommentType.LIKE);
         //如果已经点赞的话，则抛出异常
-        if (hasComment){
+        if (hasComment) {
             throw new BusinessException(ErrorResult.likeError());
         }
         //向MQ中发送消息
-        mqMessageService.sendLogMessage(ThreadLocalUtils.get(),"0203","movement",movementId);
+        mqMessageService.sendLogMessage(ThreadLocalUtils.get(), "0203", "movement", movementId);
         //调用API保存数据到mongodb
         Comment comment = new Comment();
         comment.setPublishId(new ObjectId(movementId));
@@ -133,24 +137,25 @@ public class CommentService {
         //拼接redis的key，将用户的点赞状态存入redis中
         String key = Constants.MOVEMENTS_INTERACT_KEY + movementId;
         String hashKey = Constants.MOVEMENT_LIKE_HASHKEY + ThreadLocalUtils.get();
-        redisTemplate.opsForHash().put(key,hashKey,"1");
+        redisTemplate.opsForHash().put(key, hashKey, "1");
         //返回数量
         return count;
     }
 
     /**
      * 取消点赞
+     *
      * @param movementId
      * @return
      */
     public Integer dislikeMovement(String movementId) {
         //判断是否已经点赞
         boolean hasComment = commentApi.hasComment(movementId, ThreadLocalUtils.get(), CommentType.LIKE);
-        if (!hasComment){
+        if (!hasComment) {
             throw new BusinessException(ErrorResult.disLikeError());
         }
         //向MQ中发送消息
-        mqMessageService.sendLogMessage(ThreadLocalUtils.get(),"0206","movement",movementId);
+        mqMessageService.sendLogMessage(ThreadLocalUtils.get(), "0206", "movement", movementId);
         //调用API删除删除数据
         Comment comment = new Comment();
         comment.setPublishId(new ObjectId(movementId));
@@ -160,24 +165,25 @@ public class CommentService {
         //拼接redis的key，删除点赞动态
         String key = Constants.MOVEMENTS_INTERACT_KEY + movementId;
         String hashKey = Constants.VIDEO_LIKE_HASHKEY + ThreadLocalUtils.get();
-        redisTemplate.opsForHash().delete(key,hashKey);
+        redisTemplate.opsForHash().delete(key, hashKey);
         //返回点赞的数量
         return count;
     }
 
     /**
      * 动态喜欢
+     *
      * @param movementId
      * @return
      */
     public Integer loveComment(String movementId) {
         //判断是否已喜欢
         boolean hasComment = commentApi.hasComment(movementId, ThreadLocalUtils.get(), CommentType.LOVE);
-        if (hasComment){
+        if (hasComment) {
             throw new BusinessException(ErrorResult.loveError());
         }
         //向MQ中发送消息
-        mqMessageService.sendLogMessage(ThreadLocalUtils.get(),"0204","movement",movementId);
+        mqMessageService.sendLogMessage(ThreadLocalUtils.get(), "0204", "movement", movementId);
         //封装对象
         Comment comment = new Comment();
         comment.setPublishId(new ObjectId(movementId));
@@ -190,23 +196,24 @@ public class CommentService {
         String key = Constants.MOVEMENTS_INTERACT_KEY + movementId;
         String typeKey = Constants.MOVEMENT_LOVE_HASHKEY + ThreadLocalUtils.get();
         ///执行添加操作
-        redisTemplate.opsForHash().put(key,typeKey,"1");
+        redisTemplate.opsForHash().put(key, typeKey, "1");
         return count;
     }
 
     /**
      * 动态取消喜欢
+     *
      * @param movementId
      * @return
      */
     public Integer unloveComment(String movementId) {
         //判断是否喜欢
         boolean hasComment = commentApi.hasComment(movementId, ThreadLocalUtils.get(), CommentType.LOVE);
-        if (!hasComment){
+        if (!hasComment) {
             throw new BusinessException(ErrorResult.disloveError());
         }
         //向MQ中发送消息
-        mqMessageService.sendLogMessage(ThreadLocalUtils.get(),"0207","movement",movementId);
+        mqMessageService.sendLogMessage(ThreadLocalUtils.get(), "0207", "movement", movementId);
         //创建对象
         Comment comment = new Comment();
         comment.setPublishId(new ObjectId(movementId));
@@ -218,24 +225,25 @@ public class CommentService {
         String key = Constants.MOVEMENTS_INTERACT_KEY + movementId;
         String typeKey = Constants.MOVEMENT_LOVE_HASHKEY + ThreadLocalUtils.get();
         //删除redis中的数据
-        redisTemplate.opsForHash().delete(key,typeKey);
+        redisTemplate.opsForHash().delete(key, typeKey);
         //返回喜欢书
         return count;
     }
 
     /**
      * 谁看过我
+     *
      * @return
      */
     public List<VisitorVo> visitors() {
         //1.查询访问时间
         String key = Constants.VISITORS_USER;
         String hashKey = String.valueOf(ThreadLocalUtils.get());
-        String value = (String) redisTemplate.opsForHash().get(key,hashKey);
+        String value = (String) redisTemplate.opsForHash().get(key, hashKey);
         Long date = StringUtils.isEmpty(value) ? null : Long.valueOf(value);
         //2.调用API查询数据库表
-        List<Visitors> list = visitorsApi.queryMyVisitors(date,ThreadLocalUtils.get());
-        if (CollUtil.isEmpty(list)){
+        List<Visitors> list = visitorsApi.queryMyVisitors(date, ThreadLocalUtils.get());
+        if (CollUtil.isEmpty(list)) {
             return new ArrayList<>();
         }
         //3.提取用户id
@@ -246,8 +254,8 @@ public class CommentService {
         List<VisitorVo> vos = new ArrayList<>();
         for (Visitors visitors : list) {
             UserInfo userInfo = map.get(visitors.getVisitorUserId());
-            if (userInfo != null){
-                vos.add(VisitorVo.init(userInfo,visitors));
+            if (userInfo != null) {
+                vos.add(VisitorVo.init(userInfo, visitors));
             }
         }
         return vos;
@@ -266,6 +274,7 @@ public class CommentService {
 
     /**
      * 评论点赞
+     *
      * @param commentId
      * @return
      */
@@ -274,7 +283,7 @@ public class CommentService {
         Comment com = commentApi.findCommentById(commentId);
         //判断当前评论是否已点赞
         boolean hasComment = commentApi.hasComment(commentId, ThreadLocalUtils.get(), CommentType.LIKE);
-        if (hasComment){
+        if (hasComment) {
             throw new BusinessException(ErrorResult.likeError());
         }
         //封装对象
@@ -285,19 +294,19 @@ public class CommentService {
         comment.setCreated(System.currentTimeMillis());
         comment.setPublishUserId(com.getUserId());
         //执行保存操作
-        Integer count = commentApi.saveLikeComment(comment,commentId);
+        Integer count = commentApi.saveLikeComment(comment, commentId);
         //设置key存储至redis中
         String key = Constants.COMMENT_INTERACT_KEY + commentId;
         String typeKey = Constants.COMMENT_LIKE_HASHKEY + ThreadLocalUtils.get();
         //将数据存入到redis中
-        redisTemplate.opsForHash().put(key,typeKey,"1");
+        redisTemplate.opsForHash().put(key, typeKey, "1");
         return count;
     }
 
     public Integer dislikeComment(String commentId) {
         //判断当前评论是否已经点赞
         boolean hasComment = commentApi.hasComment(commentId, ThreadLocalUtils.get(), CommentType.LIKE);
-        if (!hasComment){
+        if (!hasComment) {
             throw new BusinessException(ErrorResult.disLikeError());
         }
         //封装对象
@@ -310,7 +319,7 @@ public class CommentService {
         //删除redis中相关的数据
         String key = Constants.COMMENT_INTERACT_KEY + commentId;
         String typeKey = Constants.COMMENT_LIKE_HASHKEY + ThreadLocalUtils.get();
-        redisTemplate.opsForHash().delete(key,typeKey);
+        redisTemplate.opsForHash().delete(key, typeKey);
         return count;
     }
 }

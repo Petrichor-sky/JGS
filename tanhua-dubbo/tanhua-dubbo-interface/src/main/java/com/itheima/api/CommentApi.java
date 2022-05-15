@@ -2,6 +2,7 @@ package com.itheima.api;
 
 import com.itheima.enums.CommentType;
 import com.itheima.mongo.Comment;
+import org.bson.types.ObjectId;
 
 import java.util.List;
 
@@ -28,4 +29,6 @@ public interface CommentApi {
     List<Comment> findCommentsByPublishId(String messageID, Integer page, Integer pageSize);
 
     List<Comment> findCommentsByPage(String messageID, Integer page, Integer pageSize, String sortProp, String sortOrder);
+
+    Integer countLikeCount(ObjectId id, CommentType like);
 }
